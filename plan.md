@@ -583,7 +583,12 @@
       - Tests verify: --project filter, --limit option, case-insensitivity
       - Tests verify: 1-based indexing, no duplicate messages, consistent ordering
       - Tests verify: empty results for non-matching queries and whitespace-only queries
-- [ ] Add `--clipboard` support for chat show output.
+- [x] Add `--clipboard` support for chat show output.
+      - Fixed bug: local `-c, --clipboard` option was shadowed by global option
+      - Updated `handleChatShow()` to use `globalOpts.clipboard` from collected options
+      - Added graceful error handling for clipboard failures (warns but continues)
+      - Added 7 tests in `tests/cli/commands/chat.test.ts` under `describe("chat show --clipboard")`
+      - Tests verify: flag recognition, all output formats, -c short flag, multi-part messages, error handling
 
 ## Phase 5 - Docs and Validation
 - [ ] Add CLI usage section to `README.md` (commands and global flags).

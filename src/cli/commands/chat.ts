@@ -107,15 +107,16 @@ export function registerChatCommands(parent: Command): void {
     .requiredOption("--session <sessionId>", "Session ID containing the message")
     .option("-m, --message <messageId>", "Message ID to show")
     .option("-i, --index <number>", "Message index (1-based) to show")
-    .option("-c, --clipboard", "Copy message content to clipboard")
     .action(async function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
+      const allOpts = collectOptions(this)
+      const globalOpts = parseGlobalOptions(allOpts)
       const cmdOpts = this.opts()
       const showOpts: ChatShowOptions = {
         session: String(cmdOpts.session),
         message: cmdOpts.message as string | undefined,
         index: cmdOpts.index ? parseInt(String(cmdOpts.index), 10) : undefined,
-        clipboard: Boolean(cmdOpts.clipboard),
+        // Use global --clipboard option since it's defined at root level
+        clipboard: globalOpts.clipboard,
       }
       await withErrorHandling(handleChatShow, globalOpts.format)(
         globalOpts,
@@ -267,9 +268,17 @@ async function handleChatShow(
     const content = hydratedMessage.parts
       ?.map((p) => p.text)
       .join("\n\n") ?? hydratedMessage.previewText
-    await copyToClipboard(content)
-    if (globalOpts.format === "table") {
-      console.log("(copied to clipboard)")
+    try {
+      await copyToClipboard(content)
+      if (globalOpts.format === "table") {
+        console.log("(copied to clipboard)")
+      }
+    } catch {
+      // Clipboard copy failed (e.g., xclip/pbcopy not available)
+      // Warn but continue - the user still gets the message output
+      if (globalOpts.format === "table") {
+        console.error("Warning: Could not copy to clipboard")
+      }
     }
   }
 

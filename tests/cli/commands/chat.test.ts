@@ -886,3 +886,92 @@ describe("chat search whitespace query", () => {
     expect(parsed.data.length).toBe(0);
   });
 });
+
+// =============================================================================
+// chat show --clipboard tests
+// =============================================================================
+
+describe("chat show --clipboard", () => {
+  it("succeeds with --clipboard flag and JSON format", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --index 1 --root ${FIXTURE_STORE_ROOT} --format json --clipboard`.quiet().nothrow();
+
+    // Command should succeed (exit code 0) even if clipboard tool isn't available
+    // The clipboard copy may fail but command should complete
+    expect(result.exitCode).toBe(0);
+
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.data.messageId).toBe("msg_user_01");
+  });
+
+  it("succeeds with --clipboard flag and NDJSON format", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --index 1 --root ${FIXTURE_STORE_ROOT} --format ndjson --clipboard`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(0);
+
+    const output = result.stdout.toString().trim();
+    const parsed = JSON.parse(output);
+    expect(parsed.messageId).toBe("msg_user_01");
+  });
+
+  it("attempts clipboard copy and shows feedback in table format", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --index 1 --root ${FIXTURE_STORE_ROOT} --format table --clipboard`.nothrow();
+
+    // Command should succeed
+    expect(result.exitCode).toBe(0);
+
+    // Combine stdout and stderr to check for any clipboard-related message
+    const stdout = result.stdout.toString();
+    const stderr = result.stderr.toString();
+    const combined = stdout + stderr;
+    
+    // Should show either success or warning message about clipboard
+    const hasClipboardMessage = 
+      combined.includes("(copied to clipboard)") || 
+      combined.includes("Could not copy to clipboard");
+    expect(hasClipboardMessage).toBe(true);
+    
+    // Message content should still be shown
+    expect(stdout).toContain("Message ID:");
+  });
+
+  it("works with --message flag", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --message msg_user_01 --root ${FIXTURE_STORE_ROOT} --format json --clipboard`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(0);
+
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.data.messageId).toBe("msg_user_01");
+  });
+
+  it("works with -c short flag", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --index 1 --root ${FIXTURE_STORE_ROOT} --format json -c`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(0);
+
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed.ok).toBe(true);
+  });
+
+  it("processes message with multiple parts", async () => {
+    // msg_assistant_01 has multiple parts (text, tool, subtask)
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --message msg_assistant_01 --root ${FIXTURE_STORE_ROOT} --format table --clipboard`.nothrow();
+
+    expect(result.exitCode).toBe(0);
+
+    const stdout = result.stdout.toString();
+    // Should show the message content regardless of clipboard status
+    expect(stdout).toContain("help you add unit tests");
+  });
+
+  it("returns exit code 3 for non-existent message with --clipboard", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts chat show --session session_add_tests --message nonexistent --root ${FIXTURE_STORE_ROOT} --format json --clipboard`.quiet().nothrow();
+
+    // Should still return proper exit code for not found
+    expect(result.exitCode).toBe(3);
+  });
+});
