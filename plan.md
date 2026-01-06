@@ -636,7 +636,10 @@
 - [x] Verify `bunx opencode-manager` still opens TUI by default.
       - Verified: Running `bun src/bin/opencode-manager.ts` with no args launches TUI
       - TUI renders correctly with Tabs, Projects panel, Sessions panel, and keybinding help
-- [ ] Verify `bunx opencode-manager tui --help` shows TUI help text.
+- [x] Verify `bunx opencode-manager tui --help` shows TUI help text.
+      - Verified: `bun src/bin/opencode-manager.ts tui --help` displays full TUI help
+      - Shows usage, key bindings for all views (Projects, Sessions, Chat search, Chat viewer)
+      - Documents all navigation keys, selection, filtering, and clipboard operations
 - [ ] Verify `manage_opencode_projects.py` routes CLI subcommands.
 - [ ] Review open questions (completion, templates, json-lines alias).
 - [ ] If approved, add follow-up tasks for open questions.
