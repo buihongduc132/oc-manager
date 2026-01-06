@@ -152,7 +152,7 @@ How To Run
 
 ### TUI Keys
 - Global: `Tab`/`1`/`2` switch tabs, `/` search, `X` clear search, `R` reload, `Q` quit, `?/H` help
-- Projects: `Space` select, `A` select all, `M` toggle missing, `D` delete, `Enter` view sessions
+- Projects: `Space` select, `A` select all, `M` toggle missing, `D` delete, `Enter` view sessions, `Esc` clear selection
 - Sessions: `Space` select, `S` sort, `D` delete, `Y` copy ID, `Shift+R` rename, `M` move, `P` copy, `C` clear filter
 
 ### Optional
