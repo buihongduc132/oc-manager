@@ -200,7 +200,10 @@
       - Removed direct `fast-fuzzy` `Searcher` import in favor of shared library
       - Refactored searchCandidates to use `SearchCandidate<SessionRecord>` type with `item` and `searchText`
       - Updated visibleRecords memo to extract session from `match.item.item` and compute timestamps inline
-- [ ] Add tests for `src/lib/search.ts` basic ordering with fixtures.
+- [x] Add tests for `src/lib/search.ts` basic ordering with fixtures.
+      - Created `tests/lib/search.test.ts` with 29 tests across 5 describe blocks
+      - Tests cover: createSearcher, fuzzySearch, fuzzySearchItems, buildSearchText, ordering behavior
+      - Verifies score-based ordering, limit enforcement, partial matching, session-like data search
 
 ### Projects list
 - [ ] Add `projects list` options (`--missing-only`, `--search`, `--limit`, `--format`).
