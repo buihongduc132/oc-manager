@@ -156,22 +156,31 @@ When documentation and code conflict, resolve using this priority:
   - **DISCREPANCY-004**: README missing `A`, `Enter`, `Esc` for Sessions view
 
 ### 1.10 Data Model Audit
-- [ ] Read `src/lib/opencode-data.ts` storage layout section
-- [ ] Document storage paths:
-  - `project/<projectId>.json`
-  - `sessions/<projectId>.json`
-  - `session/<projectId>/<sessionId>.json`
-  - `message/<sessionId>/<messageId>.json`
-  - `part/<messageId>/<partId>.json`
-- [ ] Document legacy fallback paths:
-  - `session/message/<sessionId>/<messageId>.json`
-  - `session/part/<messageId>/<partId>.json`
-- [ ] Extract project schema fields: `id`, `worktree`, `vcs`, `time.created`
-- [ ] Extract session schema fields: `id`, `projectID`, `directory`, `title`, `version`, `time.created`, `time.updated`
-- [ ] Extract message schema fields: `id`, `sessionID`, `role`, `time.created`, `parentID`, `tokens.*`
-- [ ] Extract part schema fields: `text`, `tool`, `subtask` parts
-- [ ] Compare against `tests/fixtures/README.md`
-- [ ] Document any discrepancies
+- [x] Read `src/lib/opencode-data.ts` storage layout section
+  - **Finding**: Storage layout defined in `src/lib/opencode-data.ts:86-88` (DEFAULT_ROOT, PROJECT_BUCKETS)
+- [x] Document storage paths:
+  - `storage/project/<projectId>.json` (primary bucket)
+  - `storage/sessions/<projectId>.json` (secondary bucket)
+  - `storage/session/<projectId>/<sessionId>.json`
+  - `storage/message/<sessionId>/<messageId>.json`
+  - `storage/part/<messageId>/<partId>.json`
+  - **Finding**: Paths confirmed in `loadProjectRecords()` (line 189), `loadSessionRecords()` (line 236), `loadSessionMessagePaths()` (line 604), `loadMessagePartPaths()` (line 781)
+- [x] Document legacy fallback paths:
+  - `storage/session/message/<sessionId>/<messageId>.json`
+  - `storage/session/part/<messageId>/<partId>.json`
+  - **Finding**: Legacy paths confirmed in `loadSessionMessagePaths()` (line 617) and `loadMessagePartPaths()` (line 794)
+- [x] Extract project schema fields: `id`, `worktree`, `vcs`, `time.created`
+  - **Finding**: Fields confirmed in `loadProjectRecords()` lines 203-214
+- [x] Extract session schema fields: `id`, `projectID`, `directory`, `title`, `version`, `time.created`, `time.updated`
+  - **Finding**: Fields confirmed in `loadSessionRecords()` lines 271-284
+- [x] Extract message schema fields: `id`, `sessionID`, `role`, `time.created`, `parentID`, `tokens.*`
+  - **Finding**: Fields confirmed in `RawMessagePayload` interface (lines 867-874) and `loadSessionChatIndex()` (lines 900-926)
+- [x] Extract part schema fields: `text`, `tool`, `subtask` parts
+  - **Finding**: Part types defined in `PartType` (line 34) and extraction logic in `extractPartContent()` (lines 835-865)
+- [x] Compare against `tests/fixtures/README.md`
+  - **Finding**: `tests/fixtures/README.md` accurately documents all schemas and storage layouts
+- [x] Document any discrepancies
+  - **Finding**: No discrepancies - `tests/fixtures/README.md` is fully consistent with `src/lib/opencode-data.ts`
 
 ### 1.11 Exit Codes Audit
 - [ ] Read `src/cli/errors.ts`
@@ -598,11 +607,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 48 | 89% |
+| Phase 1 | 54 | 58 | 107% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **48** | **21.1%** |
+| **Total** | **227** | **58** | **25.6%** |
