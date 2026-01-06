@@ -8,7 +8,14 @@
       - Uses `@opentui/core` + `@opentui/react` for TUI framework
       - Fuzzy search: `fast-fuzzy` Searcher class (line 47, used at line 594)
       - Clipboard: `copyToClipboard()` at lines 141-151 uses `pbcopy`/`xclip`
-- [ ] Review `src/lib/opencode-data.ts` to list required data APIs for CLI parity.
+- [x] Review `src/lib/opencode-data.ts` to list required data APIs for CLI parity.
+      - **Types**: ProjectState, TokenBreakdown, TokenSummary, AggregateTokenSummary, PartType, ChatPart, ChatRole, ChatMessage, ProjectRecord, SessionRecord, LoadOptions, SessionLoadOptions, DeleteOptions, DeleteResult, BatchOperationResult, ChatSearchResult
+      - **Project APIs**: `loadProjectRecords()`, `deleteProjectMetadata()`, `filterProjectsByState()`, `filterProjectsByIds()`, `filterProjectsByIndexes()`, `describeProject()`
+      - **Session APIs**: `loadSessionRecords()`, `deleteSessionMetadata()`, `filterSessionsByIndexes()`, `updateSessionTitle()`, `copySession()`, `moveSession()`, `copySessions()`, `moveSessions()`, `describeSession()`
+      - **Token APIs**: `computeSessionTokenSummary()`, `computeProjectTokenSummary()`, `computeGlobalTokenSummary()`, `clearTokenCache()`
+      - **Chat APIs**: `loadSessionChatIndex()`, `loadMessageParts()`, `hydrateChatMessageParts()`, `searchSessionsChat()`
+      - **Utilities**: `formatDisplayPath()`, `formatDate()`, `ensureDirectory()`, `loadSessionMessagePaths()`, `loadMessagePartPaths()`
+      - **Constants**: `DEFAULT_ROOT`
 - [ ] Locate TUI fuzzy search usage and identify exact extraction boundaries.
 - [ ] Locate TUI clipboard usage and identify exact extraction boundaries.
 - [ ] Create `tests/` directory at repo root.
