@@ -142,6 +142,80 @@ opencode-manager
 └── tui           Launch the Terminal UI
 ```
 
+#### Output Format Examples
+
+The CLI supports three output formats via `--format`:
+
+**Table (default)** — Human-readable columnar output:
+
+```bash
+$ bunx opencode-manager projects list --limit 3
+
+#   Project ID                           Worktree                          State   Updated     Created
+──────────────────────────────────────────────────────────────────────────────────────────────────────
+1   prj_abc123                           ~/repos/my-app                    ✓       Jan 05      Dec 28
+2   prj_def456                           ~/repos/api-server                ✓       Jan 04      Dec 15
+3   prj_missing                          ~/repos/deleted-project           ✗       Dec 20      Dec 01
+```
+
+**JSON** — Structured output with metadata envelope:
+
+```bash
+$ bunx opencode-manager sessions list --project prj_abc123 --format json --limit 2
+
+{
+  "ok": true,
+  "data": [
+    {
+      "sessionId": "sess_xyz789",
+      "projectId": "prj_abc123",
+      "title": "Refactor auth module",
+      "updatedAt": "2026-01-05T14:32:00.000Z",
+      "createdAt": "2026-01-03T09:15:00.000Z"
+    },
+    {
+      "sessionId": "sess_uvw456",
+      "projectId": "prj_abc123",
+      "title": "Add unit tests",
+      "updatedAt": "2026-01-04T16:45:00.000Z",
+      "createdAt": "2026-01-02T11:20:00.000Z"
+    }
+  ],
+  "meta": {
+    "count": 2
+  }
+}
+```
+
+**NDJSON** — Newline-delimited JSON for streaming/piping:
+
+```bash
+$ bunx opencode-manager tokens global --format ndjson
+
+{"category":"input","tokens":125000,"percentage":"45.2%"}
+{"category":"output","tokens":98000,"percentage":"35.4%"}
+{"category":"reasoning","tokens":32000,"percentage":"11.6%"}
+{"category":"cacheRead","tokens":15000,"percentage":"5.4%"}
+{"category":"cacheWrite","tokens":6500,"percentage":"2.4%"}
+{"category":"total","tokens":276500,"percentage":"100.0%"}
+```
+
+**Piping examples:**
+
+```bash
+# Count sessions per project
+bunx opencode-manager sessions list --format ndjson | jq -s 'group_by(.projectId) | map({project: .[0].projectId, count: length})'
+
+# Get all session IDs as plain text
+bunx opencode-manager sessions list --format json | jq -r '.data[].sessionId'
+
+# Export chat history to file
+bunx opencode-manager chat list --session sess_xyz789 --include-parts --format json > chat-export.json
+
+# Dry-run delete to preview affected files
+bunx opencode-manager projects delete --id prj_old --dry-run --format json
+```
+
 #### Exit Codes
 
 | Code | Meaning |

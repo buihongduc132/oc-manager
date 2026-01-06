@@ -596,7 +596,12 @@
       - Documented all global options (--root, --format, --limit, --sort, --yes, --dry-run, --quiet, --clipboard, --backup-dir)
       - Added commands overview tree showing all subcommands and their options
       - Added exit codes table (0-4) with meanings
-- [ ] Add CLI examples for json/ndjson/table outputs to `README.md`.
+- [x] Add CLI examples for json/ndjson/table outputs to `README.md`.
+      - Added "Output Format Examples" section with examples for all three formats
+      - Table format: projects list with columnar output and visual state indicators
+      - JSON format: sessions list with envelope structure (ok/data/meta)
+      - NDJSON format: tokens global with streaming line-by-line output
+      - Added piping examples for jq processing, text extraction, export, and dry-run preview
 - [ ] Document clipboard support limitations (Linux/macOS).
 - [ ] Update `PROJECT-SUMMARY.md` with new CLI/TUI architecture.
 - [ ] Add integration tests covering projects/sessions/tokens commands.
