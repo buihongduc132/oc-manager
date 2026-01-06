@@ -51,11 +51,16 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: No discrepancies - README CLI Global Options section is accurate and complete
 
 ### 1.3 Projects Command Audit
-- [ ] Read `src/cli/commands/projects.ts` lines 70-130
-- [ ] Extract `projects list` flags: `--missing-only`, `--search`
-- [ ] Extract `projects delete` flags: `--id`, `--yes`, `--dry-run`, `--backup-dir`
-- [ ] Compare against README.md projects section
-- [ ] Document any discrepancies
+- [x] Read `src/cli/commands/projects.ts` lines 70-130
+  - **Finding**: Command definitions at lines 70-110
+- [x] Extract `projects list` flags: `--missing-only`, `--search`
+  - **Finding**: `--missing-only` (default: false), `-s, --search <query>` confirmed at lines 76-77
+- [x] Extract `projects delete` flags: `--id`, `--yes`, `--dry-run`, `--backup-dir`
+  - **Finding**: `--id <projectId>` (required), `--yes`, `--dry-run`, `--backup-dir <dir>` confirmed at lines 91-94
+- [x] Compare against README.md projects section
+  - **Finding**: README.md:126-127 documents both commands correctly with all flags
+- [x] Document any discrepancies
+  - **Finding**: No discrepancies - README accurately documents all projects command flags
 
 ### 1.4 Sessions Command Audit
 - [ ] Read `src/cli/commands/sessions.ts` lines 100-200
@@ -547,11 +552,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 8 | 15% |
+| Phase 1 | 54 | 13 | 24% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **8** | **3.5%** |
+| **Total** | **227** | **13** | **5.7%** |
