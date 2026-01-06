@@ -232,7 +232,10 @@
       - Created `tests/cli/commands/projects.test.ts` with 8 tests
       - Tests verify JSON envelope, project fields, Date serialization, meta info
       - Tests verify --missing-only, --search, --limit filters work correctly
-- [ ] Add NDJSON output test for `projects list`.
+- [x] Add NDJSON output test for `projects list`.
+      - Added 8 tests in `tests/cli/commands/projects.test.ts` under `describe("projects list --format ndjson")`
+      - Tests verify: valid NDJSON format, project count, field presence, ISO date serialization
+      - Tests verify: no envelope wrapper (raw records), --missing-only, --search, --limit filters
 - [ ] Add table output test for `projects list`.
 
 ### Sessions list
