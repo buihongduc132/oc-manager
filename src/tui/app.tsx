@@ -430,12 +430,17 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
       }
       if (letter === "a") {
         setSelectedIndexes((prev) => {
-          const next = new Set(prev)
-          if (next.size >= visibleRecords.length) {
-            return new Set<number>()
+          if (visibleRecords.length === 0) {
+            return prev
           }
+          const next = new Set(prev)
+          const allVisibleSelected = visibleRecords.every((record) => next.has(record.index))
           for (const record of visibleRecords) {
-            next.add(record.index)
+            if (allVisibleSelected) {
+              next.delete(record.index)
+            } else {
+              next.add(record.index)
+            }
           }
           return next
         })
@@ -883,6 +888,24 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
         toggleSelection(currentSession)
         return
       }
+      if (letter === "a") {
+        setSelectedIndexes((prev) => {
+          if (visibleRecords.length === 0) {
+            return prev
+          }
+          const next = new Set(prev)
+          const allVisibleSelected = visibleRecords.every((session) => next.has(session.index))
+          for (const session of visibleRecords) {
+            if (allVisibleSelected) {
+              next.delete(session.index)
+            } else {
+              next.add(session.index)
+            }
+          }
+          return next
+        })
+        return
+      }
       if (letter === "s") {
         setSortMode((prev) => (prev === "updated" ? "created" : "updated"))
         return
@@ -993,7 +1016,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
     >
       <box flexDirection="column" marginBottom={1}>
         <text>Filter: {projectFilter ? `project ${projectFilter}` : "none"} | Sort: {sortMode} | Search: {searchQuery ? `${searchQuery} (fuzzy)` : "(none)"} | Selected: {selectedIndexes.size}</text>
-        <text>Keys: Space select, S sort, D delete, Y copy ID, V view chat, F search chats, Shift+R rename, M move, P copy, C clear</text>
+        <text>Keys: Space select, A select all, S sort, D delete, Y copy ID, V view chat, F search chats, Shift+R rename, M move, P copy, C clear filter, Esc clear</text>
       </box>
 
       {isRenaming ? (
@@ -1195,6 +1218,10 @@ const HelpScreen = ({ onDismiss }: { onDismiss: () => void }) => {
             <Bullet>
               <text>Select: </text>
               <KeyChip k="Space" /> <text> — Toggle highlighted</text>
+            </Bullet>
+            <Bullet>
+              <text>Select all: </text>
+              <KeyChip k="A" />
             </Bullet>
             <Bullet>
               <text>Toggle sort (updated/created): </text>
