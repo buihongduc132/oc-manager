@@ -242,7 +242,10 @@
       - Tests verify: state column visual indicators, --missing-only, --search, --limit filters
 
 ### Sessions list
-- [ ] Add `sessions list` options (`--project`, `--search`, `--sort`, `--limit`).
+- [x] Add `sessions list` options (`--project`, `--search`, `--sort`, `--limit`).
+      - `--project` and `--search` defined in `src/cli/commands/sessions.ts` (lines 84-85)
+      - `--sort` and `--limit` are global options in `src/cli/index.ts` (lines 93-101)
+      - All options properly passed to `handleSessionsList()` via `collectOptions()` and `parseGlobalOptions()`
 - [ ] Implement loading session records for all projects.
 - [ ] Implement project filter for sessions list.
 - [ ] Implement fuzzy session search using `src/lib/search.ts`.
