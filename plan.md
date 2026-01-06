@@ -261,8 +261,13 @@
       - Added sorting logic to `handleSessionsList()` for both search and non-search paths
       - Sorts by `updatedAt` (default) or `createdAt` based on `--sort` flag, descending
       - Falls back to `createdAt` when `updatedAt` is missing, then `sessionId` for stability
-- [ ] Implement `--limit` cap (default 200) for sessions list.
-- [ ] Wire `sessions list` output through `output.ts`.
+- [x] Implement `--limit` cap (default 200) for sessions list.
+      - Line 192-194: fuzzySearch called with `{ limit: globalOpts.limit }` when search is active
+      - Line 225-226: `sessions.slice(0, globalOpts.limit)` applied when no search
+      - Default limit of 200 defined in `src/cli/index.ts` line 62
+- [x] Wire `sessions list` output through `output.ts`.
+      - Lines 229-231: uses `getOutputOptions()` and `printSessionsOutput()` from output.ts
+      - Supports json, ndjson, and table output formats via `--format` flag
 - [ ] Add JSON output test for `sessions list`.
 - [ ] Add NDJSON output test for `sessions list`.
 - [ ] Add table output test for `sessions list`.
