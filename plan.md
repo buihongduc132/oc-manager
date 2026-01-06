@@ -131,7 +131,10 @@
       - Detects CLI subcommands (projects, sessions, chat, tokens) vs TUI mode
       - Preserved --bun option for specifying custom bun path
       - Removed argparse in favor of simple arg parsing (wrapper only needs --bun)
-- [ ] Add a minimal CLI smoke test (help output) to ensure CLI boots.
+- [x] Add a minimal CLI smoke test (help output) to ensure CLI boots.
+      - Created `tests/cli/index.test.ts` with 8 smoke tests
+      - Tests verify help output for projects, sessions, chat, tokens subcommands
+      - Tests verify nested subcommand help (projects list, sessions list, chat show, tokens session)
 
 ## Phase 2 - Output Formatting and Read-Only Commands
 - [ ] Create `src/cli/formatters/json.ts` with standard JSON output helpers.
