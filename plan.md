@@ -94,7 +94,13 @@
       - Added `ProjectsListOptions` (--missing-only, --search) and `ProjectsDeleteOptions` (--id) interfaces
       - Updated `src/cli/index.ts` to import and use the new module
       - Moved projects subcommands from inline definitions to separate file
-- [ ] Create `src/cli/commands/sessions.ts` with placeholder subcommands.
+- [x] Create `src/cli/commands/sessions.ts` with placeholder subcommands.
+      - Created `src/cli/commands/sessions.ts` with `registerSessionsCommands()` function
+      - Added interfaces: `SessionsListOptions` (--project, --search), `SessionsDeleteOptions` (--session),
+        `SessionsRenameOptions` (--session, --title), `SessionsMoveOptions` (--session, --to),
+        `SessionsCopyOptions` (--session, --to)
+      - Updated `src/cli/index.ts` to import and use the new module
+      - Moved sessions subcommands from inline definitions to separate file
 - [ ] Create `src/cli/commands/chat.ts` with placeholder subcommands.
 - [ ] Create `src/cli/commands/tokens.ts` with placeholder subcommands.
 - [ ] Create `src/cli/commands/tui.ts` to launch TUI from CLI.

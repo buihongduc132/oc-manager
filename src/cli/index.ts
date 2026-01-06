@@ -10,6 +10,7 @@ import { Command, type OptionValues } from "commander"
 import { resolve } from "node:path"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
 import { registerProjectsCommands } from "./commands/projects"
+import { registerSessionsCommands } from "./commands/sessions"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -109,54 +110,7 @@ function createProgram(): Command {
   registerProjectsCommands(program)
 
   // Sessions subcommand group
-  const sessions = program
-    .command("sessions")
-    .description("Manage OpenCode sessions")
-
-  sessions
-    .command("list")
-    .description("List sessions")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("sessions list: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  sessions
-    .command("delete")
-    .description("Delete a session")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("sessions delete: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  sessions
-    .command("rename")
-    .description("Rename a session")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("sessions rename: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  sessions
-    .command("move")
-    .description("Move a session to another project")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("sessions move: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  sessions
-    .command("copy")
-    .description("Copy a session to another project")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("sessions copy: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
+  registerSessionsCommands(program)
 
   // Chat subcommand group
   const chat = program
