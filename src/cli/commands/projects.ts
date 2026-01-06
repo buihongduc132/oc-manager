@@ -6,7 +6,7 @@
 
 import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
-import { loadProjectRecords, type ProjectRecord } from "../../lib/opencode-data"
+import { loadProjectRecords, filterProjectsByState, type ProjectRecord } from "../../lib/opencode-data"
 import { getOutputOptions, printProjectsOutput } from "../output"
 
 /**
@@ -86,7 +86,12 @@ async function handleProjectsList(
   listOpts: ProjectsListOptions
 ): Promise<void> {
   // Load project records from the data layer
-  const projects = await loadProjectRecords({ root: globalOpts.root })
+  let projects = await loadProjectRecords({ root: globalOpts.root })
+
+  // Apply missing-only filter if requested
+  if (listOpts.missingOnly) {
+    projects = filterProjectsByState(projects, "missing")
+  }
 
   // Output the projects using the appropriate formatter
   const outputOpts = getOutputOptions(globalOpts)

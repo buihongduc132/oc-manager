@@ -214,7 +214,9 @@
       - Updated `handleProjectsList()` in `src/cli/commands/projects.ts` to use `loadProjectRecords()` from `opencode-data`
       - Wired output through `printProjectsOutput()` from `output.ts`
       - Supports json, ndjson, and table output formats via `--format` flag
-- [ ] Implement missing-only filter for projects.
+- [x] Implement missing-only filter for projects.
+      - Added `filterProjectsByState` import from `opencode-data`
+      - Applied filter when `listOpts.missingOnly` is true in `handleProjectsList()`
 - [ ] Implement project tokenized search behavior (match TUI semantics).
 - [ ] Implement `--limit` cap (default 200) for projects list.
 - [ ] Wire `projects list` output through `output.ts`.
