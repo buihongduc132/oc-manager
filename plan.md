@@ -112,7 +112,10 @@
       - Added interfaces: `TokensSessionOptions` (--session), `TokensProjectOptions` (--project)
       - Updated `src/cli/index.ts` to import and use the new module
       - Moved tokens subcommands from inline definitions to separate file
-- [ ] Create `src/cli/commands/tui.ts` to launch TUI from CLI.
+- [x] Create `src/cli/commands/tui.ts` to launch TUI from CLI.
+      - Created `src/cli/commands/tui.ts` with `registerTUICommand()` function
+      - Updated `src/cli/index.ts` to import and use the new module
+      - Moved inline TUI subcommand definition to separate file following existing pattern
 - [ ] Register all command modules from `src/cli/index.ts`.
 - [ ] Create `src/lib/clipboard.ts` and move TUI clipboard helper into it.
 - [ ] Update TUI code to call `src/lib/clipboard.ts`.

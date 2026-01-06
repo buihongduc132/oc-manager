@@ -13,6 +13,7 @@ import { registerProjectsCommands } from "./commands/projects"
 import { registerSessionsCommands } from "./commands/sessions"
 import { registerChatCommands } from "./commands/chat"
 import { registerTokensCommands } from "./commands/tokens"
+import { registerTUICommand } from "./commands/tui"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -121,14 +122,7 @@ function createProgram(): Command {
   registerTokensCommands(program)
 
   // TUI subcommand to explicitly launch TUI from CLI
-  program
-    .command("tui")
-    .description("Launch the Terminal UI")
-    .action(async function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      const { launchTUI } = await import("../tui/index")
-      await launchTUI({ root: globalOpts.root })
-    })
+  registerTUICommand(program)
 
   return program
 }
