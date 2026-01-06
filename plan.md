@@ -250,8 +250,13 @@
       - Updated `handleSessionsList()` in `src/cli/commands/sessions.ts` to use `loadSessionRecords()` from `opencode-data`
       - Wired output through `printSessionsOutput()` from `output.ts`
       - Supports json, ndjson, and table output formats via `--format` flag
-- [ ] Implement project filter for sessions list.
-- [ ] Implement fuzzy session search using `src/lib/search.ts`.
+- [x] Implement project filter for sessions list.
+      - Already implemented: `loadSessionRecords()` accepts `projectId` option (lines 257-259 of opencode-data.ts)
+      - CLI passes `listOpts.project` to loader in `handleSessionsList()` (sessions.ts:182)
+- [x] Implement fuzzy session search using `src/lib/search.ts`.
+      - Added `buildSessionSearchText()` helper to match TUI behavior (title, sessionId, directory, projectId)
+      - Uses `fuzzySearch()` from `src/lib/search.ts` with score-based sorting
+      - Results sorted by: score descending, updatedAt descending, sessionId (matching TUI)
 - [ ] Implement `--sort` by updated/created for sessions list.
 - [ ] Implement `--limit` cap (default 200) for sessions list.
 - [ ] Wire `sessions list` output through `output.ts`.

@@ -9,6 +9,7 @@ import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
 import { loadSessionRecords, type SessionRecord } from "../../lib/opencode-data"
 import { getOutputOptions, printSessionsOutput } from "../output"
+import { fuzzySearch, type SearchCandidate } from "../../lib/search"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -155,6 +156,19 @@ export function registerSessionsCommands(parent: Command): void {
 }
 
 /**
+ * Build search text for a session record (matches TUI behavior).
+ * Combines title, sessionId, directory, and projectId.
+ */
+function buildSessionSearchText(session: SessionRecord): string {
+  return [
+    session.title || "",
+    session.sessionId,
+    session.directory || "",
+    session.projectId,
+  ].join(" ").replace(/\s+/g, " ").trim()
+}
+
+/**
  * Handle the sessions list command.
  */
 async function handleSessionsList(
@@ -168,8 +182,31 @@ async function handleSessionsList(
     projectId: listOpts.project,
   })
 
-  // Apply limit cap (default 200)
-  sessions = sessions.slice(0, globalOpts.limit)
+  // Apply fuzzy search if search query is provided
+  if (listOpts.search?.trim()) {
+    const candidates: SearchCandidate<SessionRecord>[] = sessions.map((s) => ({
+      item: s,
+      searchText: buildSessionSearchText(s),
+    }))
+    
+    const results = fuzzySearch(candidates, listOpts.search, {
+      limit: globalOpts.limit,
+    })
+    
+    // Sort by score descending, then by updatedAt descending, then by sessionId
+    results.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      const aTime = (a.item.updatedAt ?? a.item.createdAt)?.getTime() ?? 0
+      const bTime = (b.item.updatedAt ?? b.item.createdAt)?.getTime() ?? 0
+      if (bTime !== aTime) return bTime - aTime
+      return a.item.sessionId.localeCompare(b.item.sessionId)
+    })
+    
+    sessions = results.map((r) => r.item)
+  } else {
+    // Apply limit cap (default 200) when no search
+    sessions = sessions.slice(0, globalOpts.limit)
+  }
 
   // Output the sessions using the appropriate formatter
   const outputOpts = getOutputOptions(globalOpts)
