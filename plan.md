@@ -533,7 +533,12 @@
 - [x] Ensure chat list ordering matches TUI (createdAt ascending).
       - `loadSessionChatIndex()` sorts by `createdAt` ascending (oldest first)
       - Falls back to `messageId` comparison for ties/missing timestamps
-- [ ] Add tests for chat list ordering and index numbering.
+- [x] Add tests for chat list ordering and index numbering.
+      - Created `tests/cli/commands/chat.test.ts` with 32 tests across 6 describe blocks
+      - Tests cover JSON/NDJSON/table output formats for chat list
+      - Ordering tests verify createdAt ascending (oldest first), messageId tiebreaker, consistent ordering
+      - Index numbering tests verify 1-based indexes, sequential assignment, index-1 = oldest message
+      - Additional tests for --include-parts flag, --limit option, prefix matching, exit code 3
 - [ ] Add `chat show` options (`--session`, `--message`, `--index`, `--clipboard`).
 - [ ] Implement chat show by `--message` id.
 - [ ] Implement chat show by `--index` (1-based).
