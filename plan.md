@@ -176,7 +176,13 @@
       - Added `formatTokenSummary()` and `printTokenSummary()` for TokenSummary handling
       - Added `AggregateTokenRow` type and `formatAggregateTokenSummary()` for aggregate summaries
       - Added comprehensive tests (32 new tests across 7 describe blocks)
-- [ ] Create `src/cli/output.ts` to select formatter by `--format`.
+- [x] Create `src/cli/output.ts` to select formatter by `--format`.
+      - Created unified output module that routes data to json/ndjson/table formatters
+      - Added domain-specific formatters: `formatProjectsOutput`, `formatSessionsOutput`, `formatChatOutput`, `formatTokensOutput`, `formatAggregateTokensOutput`
+      - Added error/success output helpers: `formatErrorOutput`, `formatSuccessOutput`
+      - Added `getOutputOptions()` to extract output options from global CLI options
+      - Re-exports all formatter functions for convenience
+      - Added tests in `tests/cli/output.test.ts` (31 tests)
 - [ ] Add shared error/exit helpers for codes 1-4 in CLI layer.
 - [ ] Extract fuzzy search into `src/lib/search.ts` (use fast-fuzzy).
 - [ ] Update TUI search to call `src/lib/search.ts`.
