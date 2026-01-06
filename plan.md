@@ -615,11 +615,24 @@
       - Expanded "How To Run" with CLI examples, global options, and exit codes
       - Split "Work Completed" into TUI and CLI sections
       - Updated "Outstanding Recommendations" with CLI-specific enhancements
-- [ ] Add integration tests covering projects/sessions/tokens commands.
-- [ ] Add integration tests covering delete/rename/move/copy with dry-run.
-- [ ] Add integration tests covering chat list/show/search.
-- [ ] Add integration tests verifying exit codes (2/3/4).
-- [ ] Run `bun test` and ensure all tests pass.
+- [x] Add integration tests covering projects/sessions/tokens commands.
+      - Already implemented in `tests/cli/commands/{projects,sessions,tokens}.test.ts`
+      - 162 total tests (50 projects + 80 sessions + 32 tokens)
+      - All use `bun` shell to invoke CLI commands as integration tests
+- [x] Add integration tests covering delete/rename/move/copy with dry-run.
+      - Already implemented in `tests/cli/commands/{projects,sessions}.test.ts`
+      - 24+ tests covering delete with --dry-run, --backup-dir, --yes validation
+      - Includes rename, move, copy command tests with temp directories
+- [x] Add integration tests covering chat list/show/search.
+      - Already implemented in `tests/cli/commands/chat.test.ts`
+      - 103 tests covering list, show, search across json/ndjson/table formats
+      - Includes --include-parts, --clipboard, ordering, indexing tests
+- [x] Add integration tests verifying exit codes (2/3/4).
+      - Already implemented in `tests/cli/exit-codes.test.ts`
+      - 69 tests covering exit code 2 (usage), 3 (not found), 4 (file error)
+      - Tests all formats and error message content
+- [x] Run `bun test` and ensure all tests pass.
+      - All 655 tests pass across 15 test files
 - [ ] Verify `bunx opencode-manager` still opens TUI by default.
 - [ ] Verify `bunx opencode-manager tui --help` shows TUI help text.
 - [ ] Verify `manage_opencode_projects.py` routes CLI subcommands.
