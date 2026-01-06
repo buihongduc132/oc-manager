@@ -116,7 +116,9 @@
       - Created `src/cli/commands/tui.ts` with `registerTUICommand()` function
       - Updated `src/cli/index.ts` to import and use the new module
       - Moved inline TUI subcommand definition to separate file following existing pattern
-- [ ] Register all command modules from `src/cli/index.ts`.
+- [x] Register all command modules from `src/cli/index.ts`.
+      - All 5 modules (projects, sessions, chat, tokens, tui) imported and registered
+      - Verified via `--help` output for each subcommand
 - [ ] Create `src/lib/clipboard.ts` and move TUI clipboard helper into it.
 - [ ] Update TUI code to call `src/lib/clipboard.ts`.
 - [ ] Update `manage_opencode_projects.py` to detect CLI subcommands and route.
