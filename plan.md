@@ -331,7 +331,7 @@ When documentation and code conflict, resolve using this priority:
 ### Priority 2: Missing Documentation (User Impact: MEDIUM)
 | ID | Location | Issue | Fix |
 |----|----------|-------|-----|
-| DOC-001 | README.md TUI section | Missing `H` as help toggle alternative (only shows `?`) | Add `?/H` |
+| ~~DOC-001~~ | ~~README.md TUI section~~ | ~~Missing `H` as help toggle alternative (only shows `?`)~~ | ~~Add `?/H`~~ ✅ DONE |
 | DOC-002 | README.md TUI section | Projects view missing `Esc` (clear selection) | Add key binding |
 | DOC-003 | README.md TUI section | Sessions view missing `A` (select all), `Enter` (details), `Esc` (clear) | Add key bindings |
 | DOC-004 | README.md | Missing ID prefix matching behavior docs | Add section |
