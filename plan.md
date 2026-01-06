@@ -383,15 +383,24 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: All TUI features (fuzzy search `/`, chat viewer `V`, chat search `F`, rename `Shift+R`, move `M`, copy `P`, help `?/H`) documented with correct key bindings
 
 ### 2.3 README.md CLI Global Options
-- [ ] Document `--root` option with default value
-- [ ] Document `--format` option with values: json, ndjson, table
-- [ ] Document `--limit` option
-- [ ] Document `--sort` option
-- [ ] Document `--yes` option
-- [ ] Document `--dry-run` option
-- [ ] Document `--quiet` option
-- [ ] Document `--clipboard` option
-- [ ] Document `--backup-dir` option
+- [x] Document `--root` option with default value
+  - **Finding**: Already documented in README.md:111 - verified in Phase 1.2
+- [x] Document `--format` option with values: json, ndjson, table
+  - **Finding**: Already documented in README.md:112 - verified in Phase 1.2
+- [x] Document `--limit` option
+  - **Finding**: Already documented in README.md:113 - verified in Phase 1.2
+- [x] Document `--sort` option
+  - **Finding**: Already documented in README.md:114 - verified in Phase 1.2
+- [x] Document `--yes` option
+  - **Finding**: Already documented in README.md:115 - verified in Phase 1.2
+- [x] Document `--dry-run` option
+  - **Finding**: Already documented in README.md:116 - verified in Phase 1.2
+- [x] Document `--quiet` option
+  - **Finding**: Already documented in README.md:117 - verified in Phase 1.2
+- [x] Document `--clipboard` option
+  - **Finding**: Already documented in README.md:118 - verified in Phase 1.2
+- [x] Document `--backup-dir` option
+  - **Finding**: Already documented in README.md:119 - verified in Phase 1.2
 
 ### 2.4 README.md Projects Commands
 - [ ] Document `projects list` command
@@ -740,10 +749,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 13 | 17% |
+| Phase 2 | 78 | 22 | 28% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **73** | **31.5%** |
+| **Total** | **232** | **82** | **35.3%** |
