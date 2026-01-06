@@ -12,6 +12,7 @@ import { DEFAULT_ROOT } from "../lib/opencode-data"
 import { registerProjectsCommands } from "./commands/projects"
 import { registerSessionsCommands } from "./commands/sessions"
 import { registerChatCommands } from "./commands/chat"
+import { registerTokensCommands } from "./commands/tokens"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -117,36 +118,7 @@ function createProgram(): Command {
   registerChatCommands(program)
 
   // Tokens subcommand group
-  const tokens = program
-    .command("tokens")
-    .description("View token usage statistics")
-
-  tokens
-    .command("session")
-    .description("Show token usage for a session")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("tokens session: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  tokens
-    .command("project")
-    .description("Show token usage for a project")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("tokens project: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  tokens
-    .command("global")
-    .description("Show global token usage")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("tokens global: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
+  registerTokensCommands(program)
 
   // TUI subcommand to explicitly launch TUI from CLI
   program

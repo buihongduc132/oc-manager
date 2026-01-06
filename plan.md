@@ -107,7 +107,11 @@
         `ChatSearchOptions` (--query, --project)
       - Updated `src/cli/index.ts` to import and use the new module
       - Moved chat subcommands from inline definitions to separate file
-- [ ] Create `src/cli/commands/tokens.ts` with placeholder subcommands.
+- [x] Create `src/cli/commands/tokens.ts` with placeholder subcommands.
+      - Created `src/cli/commands/tokens.ts` with `registerTokensCommands()` function
+      - Added interfaces: `TokensSessionOptions` (--session), `TokensProjectOptions` (--project)
+      - Updated `src/cli/index.ts` to import and use the new module
+      - Moved tokens subcommands from inline definitions to separate file
 - [ ] Create `src/cli/commands/tui.ts` to launch TUI from CLI.
 - [ ] Register all command modules from `src/cli/index.ts`.
 - [ ] Create `src/lib/clipboard.ts` and move TUI clipboard helper into it.
