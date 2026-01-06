@@ -371,12 +371,19 @@
         - Deletion via `deleteProjectMetadata()` from opencode-data layer
         - Proper error handling with exit codes (2=usage, 3=not found, 4=file error)
       - Wrapped handler with `withErrorHandling()` for consistent error output
-- [ ] Implement dry-run path listing for project deletion.
-- [ ] Implement backup copy for project deletion.
-- [ ] Implement deletion using opencode-data layer.
-- [ ] Return exit code 2 when `--yes` is missing.
-- [ ] Return exit code 3 when project id is invalid.
-- [ ] Add test for `projects delete --dry-run`.
+- [x] Implement dry-run path listing for project deletion.
+      - Already implemented in `handleProjectsDelete()` using `createDryRunResult()` and `printDryRunOutput()`
+- [x] Implement backup copy for project deletion.
+      - Already implemented using `copyToBackupDir()` from backup module
+- [x] Implement deletion using opencode-data layer.
+      - Already implemented using `deleteProjectMetadata()` from opencode-data
+- [x] Return exit code 2 when `--yes` is missing.
+      - Already implemented via `requireConfirmation()` from errors module
+- [x] Return exit code 3 when project id is invalid.
+      - Already implemented via `resolveProjectId()` throwing NotFoundError
+- [x] Add test for `projects delete --dry-run`.
+      - Added 6 tests in `tests/cli/commands/projects.test.ts` under "projects delete --dry-run"
+      - Tests cover: JSON output format/fields, file path, table format, no actual deletion, prefix matching, exit code 3
 - [ ] Add test for `projects delete --backup-dir`.
 - [ ] Add test for `projects delete` requires `--yes`.
 

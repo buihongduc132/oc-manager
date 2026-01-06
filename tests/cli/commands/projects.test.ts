@@ -1,5 +1,5 @@
 /**
- * Tests for `projects list` CLI command output.
+ * Tests for `projects` CLI commands output.
  *
  * Uses fixture store at tests/fixtures/store to verify command output formats.
  */
@@ -258,5 +258,66 @@ describe("projects list --format table", () => {
 
     // 1 header + 1 underline + 1 data row = 3 total lines
     expect(lines.length).toBe(3);
+  });
+});
+
+describe("projects delete --dry-run", () => {
+  it("outputs dry-run JSON format with paths to delete", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts projects delete --id proj_present --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    // JSON output is wrapped in success envelope
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed).toHaveProperty("data");
+    expect(parsed.data).toHaveProperty("dryRun", true);
+    expect(parsed.data).toHaveProperty("operation", "delete");
+    expect(parsed.data).toHaveProperty("resourceType", "project");
+    expect(parsed.data).toHaveProperty("count", 1);
+    expect(parsed.data).toHaveProperty("paths");
+    expect(parsed.data.paths).toBeArray();
+    expect(parsed.data.paths.length).toBe(1);
+  });
+
+  it("includes correct file path in dry-run output", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts projects delete --id proj_present --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    expect(parsed.data.paths[0]).toContain("proj_present.json");
+  });
+
+  it("outputs dry-run table format with header", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts projects delete --id proj_present --root ${FIXTURE_STORE_ROOT} --format table --dry-run`.quiet();
+    const output = result.stdout.toString();
+
+    expect(output).toContain("[DRY RUN]");
+    expect(output).toContain("delete");
+    expect(output).toContain("1 project");
+  });
+
+  it("does not actually delete the file", async () => {
+    // Run dry-run delete
+    await $`bun src/bin/opencode-manager.ts projects delete --id proj_present --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet();
+
+    // Verify file still exists by running projects list
+    const listResult = await $`bun src/bin/opencode-manager.ts projects list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const parsed = JSON.parse(listResult.stdout.toString());
+    const projectIds = parsed.data.map((p: { projectId: string }) => p.projectId);
+    expect(projectIds).toContain("proj_present");
+  });
+
+  it("supports prefix matching in dry-run mode", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts projects delete --id proj_pres --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    expect(parsed.data.paths[0]).toContain("proj_present.json");
+  });
+
+  it("returns exit code 3 for non-existent project", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts projects delete --id nonexistent_project --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(3);
   });
 });
