@@ -8,12 +8,15 @@
 import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
 import {
+  computeProjectTokenSummary,
   computeSessionTokenSummary,
+  loadProjectRecords,
   loadSessionRecords,
+  type ProjectRecord,
   type SessionRecord,
 } from "../../lib/opencode-data"
-import { getOutputOptions, printTokensOutput } from "../output"
-import { handleError, sessionNotFound } from "../errors"
+import { getOutputOptions, printAggregateTokensOutput, printTokensOutput } from "../output"
+import { handleError, projectNotFound, sessionNotFound } from "../errors"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -74,13 +77,17 @@ export function registerTokensCommands(parent: Command): void {
     .command("project")
     .description("Show token usage for a project")
     .requiredOption("--project <projectId>", "Project ID to show token usage for")
-    .action(function (this: Command) {
+    .action(async function (this: Command) {
       const globalOpts = parseGlobalOptions(collectOptions(this))
       const cmdOpts = this.opts()
       const projectOpts: TokensProjectOptions = {
         project: String(cmdOpts.project),
       }
-      handleTokensProject(globalOpts, projectOpts)
+      try {
+        await handleTokensProject(globalOpts, projectOpts)
+      } catch (error) {
+        handleError(error, globalOpts.format)
+      }
     })
 
   tokens
@@ -108,6 +115,21 @@ function findSessionById(
 }
 
 /**
+ * Find a project by ID from a list of projects.
+ * Throws NotFoundError if the project doesn't exist.
+ */
+function findProjectById(
+  projects: ProjectRecord[],
+  projectId: string
+): ProjectRecord {
+  const project = projects.find((p) => p.projectId === projectId)
+  if (!project) {
+    projectNotFound(projectId)
+  }
+  return project
+}
+
+/**
  * Handle the tokens session command.
  */
 async function handleTokensSession(
@@ -131,13 +153,29 @@ async function handleTokensSession(
 /**
  * Handle the tokens project command.
  */
-function handleTokensProject(
+async function handleTokensProject(
   globalOpts: GlobalOptions,
   projectOpts: TokensProjectOptions
-): void {
-  console.log("tokens project: not yet implemented")
-  console.log("Global options:", globalOpts)
-  console.log("Project options:", projectOpts)
+): Promise<void> {
+  // Load all projects to validate the project exists
+  const projects = await loadProjectRecords({ root: globalOpts.root })
+
+  // Find the project by ID (throws if not found)
+  findProjectById(projects, projectOpts.project)
+
+  // Load all sessions to compute token summary
+  const sessions = await loadSessionRecords({ root: globalOpts.root })
+
+  // Compute token summary for the project
+  const summary = await computeProjectTokenSummary(
+    projectOpts.project,
+    sessions,
+    globalOpts.root
+  )
+
+  // Output the result
+  const outputOpts = getOutputOptions(globalOpts)
+  printAggregateTokensOutput(summary, outputOpts.format, `Project: ${projectOpts.project}`)
 }
 
 /**

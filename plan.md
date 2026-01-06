@@ -291,7 +291,11 @@
       - Uses `loadSessionRecords()` to find session, `computeSessionTokenSummary()` for token data
       - Handles session not found with exit code 3 via `sessionNotFound()` helper
       - Outputs via `printTokensOutput()` supporting json/ndjson/table formats
-- [ ] Add `tokens project` subcommand with `--project`.
+- [x] Add `tokens project` subcommand with `--project`.
+      - Implemented `handleTokensProject()` in `src/cli/commands/tokens.ts`
+      - Uses `loadProjectRecords()` to validate project exists, `computeProjectTokenSummary()` for token data
+      - Handles project not found with exit code 3 via `projectNotFound()` helper
+      - Outputs via `printAggregateTokensOutput()` supporting json/ndjson/table formats
 - [ ] Add `tokens global` subcommand with no args.
 - [ ] Implement session token summary using existing token helpers.
 - [ ] Implement project token summary using existing token helpers.
