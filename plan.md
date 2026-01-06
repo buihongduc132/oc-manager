@@ -217,7 +217,12 @@
 - [x] Implement missing-only filter for projects.
       - Added `filterProjectsByState` import from `opencode-data`
       - Applied filter when `listOpts.missingOnly` is true in `handleProjectsList()`
-- [ ] Implement project tokenized search behavior (match TUI semantics).
+- [x] Implement project tokenized search behavior (match TUI semantics).
+      - Added `tokenizedSearch()` to `src/lib/search.ts` matching TUI semantics
+      - Split query on whitespace, case-insensitive substring match against projectId and worktree
+      - All tokens must match (AND logic), each token can match any field
+      - Updated `handleProjectsList()` in `src/cli/commands/projects.ts` to use tokenizedSearch
+      - Added 18 tests for tokenizedSearch in `tests/lib/search.test.ts`
 - [ ] Implement `--limit` cap (default 200) for projects list.
 - [ ] Wire `projects list` output through `output.ts`.
 - [ ] Add JSON output test for `projects list`.

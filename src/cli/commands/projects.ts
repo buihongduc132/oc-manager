@@ -8,6 +8,7 @@ import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
 import { loadProjectRecords, filterProjectsByState, type ProjectRecord } from "../../lib/opencode-data"
 import { getOutputOptions, printProjectsOutput } from "../output"
+import { tokenizedSearch } from "../../lib/search"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -91,6 +92,16 @@ async function handleProjectsList(
   // Apply missing-only filter if requested
   if (listOpts.missingOnly) {
     projects = filterProjectsByState(projects, "missing")
+  }
+
+  // Apply tokenized search if query provided (matches TUI semantics)
+  if (listOpts.search) {
+    projects = tokenizedSearch(
+      projects,
+      listOpts.search,
+      (p) => [p.projectId, p.worktree],
+      { limit: globalOpts.limit }
+    )
   }
 
   // Output the projects using the appropriate formatter

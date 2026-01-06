@@ -116,3 +116,55 @@ export function buildSearchText(...fields: (string | null | undefined)[]): strin
     .replace(/\s+/g, " ")
     .trim()
 }
+
+/**
+ * Options for tokenized search.
+ */
+export type TokenizedSearchOptions = {
+  /** Maximum number of results to return (default: 200) */
+  limit?: number
+}
+
+/**
+ * Performs tokenized substring search on items.
+ * Matches TUI project search semantics:
+ * - Query is split on whitespace into tokens
+ * - Each token must be found in at least one of the searchable fields
+ * - Matching is case-insensitive substring matching
+ *
+ * @param items - Array of items to search
+ * @param query - The search query string
+ * @param getFields - Function to extract searchable fields from an item
+ * @param options - Optional search options
+ * @returns Array of items that match all tokens
+ */
+export function tokenizedSearch<T>(
+  items: T[],
+  query: string,
+  getFields: (item: T) => (string | null | undefined)[],
+  options?: TokenizedSearchOptions
+): T[] {
+  const q = query?.trim().toLowerCase() ?? ""
+  if (!q) {
+    const limit = options?.limit ?? 200
+    return items.slice(0, limit)
+  }
+
+  const tokens = q.split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) {
+    const limit = options?.limit ?? 200
+    return items.slice(0, limit)
+  }
+
+  const matched = items.filter((item) => {
+    const fields = getFields(item).map((f) => (f || "").toLowerCase())
+    return tokens.every((tok) => fields.some((field) => field.includes(tok)))
+  })
+
+  const limit = options?.limit ?? 200
+  if (matched.length > limit) {
+    return matched.slice(0, limit)
+  }
+
+  return matched
+}

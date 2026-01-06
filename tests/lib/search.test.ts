@@ -10,6 +10,7 @@ import {
   fuzzySearch,
   fuzzySearchItems,
   buildSearchText,
+  tokenizedSearch,
   type SearchCandidate,
 } from "../../src/lib/search";
 
@@ -253,5 +254,146 @@ describe("fuzzySearch ordering behavior", () => {
     expect(results.length).toBeGreaterThan(0);
     const sess3 = results.find((r) => r.item.id === "sess_3");
     expect(sess3).toBeDefined();
+  });
+});
+
+// Project-like data for tokenized search tests
+type ProjectLike = {
+  projectId: string;
+  worktree: string;
+  state: "exists" | "missing";
+};
+
+const projectData: ProjectLike[] = [
+  { projectId: "proj_abc123", worktree: "/home/user/projects/my-app", state: "exists" },
+  { projectId: "proj_def456", worktree: "/home/user/projects/api-server", state: "exists" },
+  { projectId: "proj_ghi789", worktree: "/home/user/work/frontend-app", state: "missing" },
+  { projectId: "proj_jkl012", worktree: "/var/www/website", state: "exists" },
+  { projectId: "proj_mno345", worktree: "/home/user/projects/cli-tool", state: "exists" },
+];
+
+describe("tokenizedSearch", () => {
+  const getFields = (p: ProjectLike) => [p.projectId, p.worktree];
+
+  it("returns all items when query is empty", () => {
+    const results = tokenizedSearch(projectData, "", getFields);
+    expect(results.length).toBe(5);
+  });
+
+  it("returns all items when query is whitespace only", () => {
+    const results = tokenizedSearch(projectData, "   ", getFields);
+    expect(results.length).toBe(5);
+  });
+
+  it("matches single token in projectId", () => {
+    const results = tokenizedSearch(projectData, "abc123", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].projectId).toBe("proj_abc123");
+  });
+
+  it("matches single token in worktree", () => {
+    const results = tokenizedSearch(projectData, "api-server", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].worktree).toBe("/home/user/projects/api-server");
+  });
+
+  it("matches partial substring", () => {
+    const results = tokenizedSearch(projectData, "proj", getFields);
+    // All items have "proj" in projectId or worktree path
+    expect(results.length).toBe(5);
+  });
+
+  it("requires all tokens to match (AND logic)", () => {
+    // Both tokens must match somewhere in the fields
+    const results = tokenizedSearch(projectData, "abc 123", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].projectId).toBe("proj_abc123");
+  });
+
+  it("allows tokens to match different fields", () => {
+    // "proj" in projectId, "app" in worktree path
+    const results = tokenizedSearch(projectData, "proj app", getFields);
+    // Should match: my-app, frontend-app
+    expect(results.length).toBe(2);
+    const paths = results.map((r) => r.worktree);
+    expect(paths).toContain("/home/user/projects/my-app");
+    expect(paths).toContain("/home/user/work/frontend-app");
+  });
+
+  it("is case insensitive", () => {
+    const results = tokenizedSearch(projectData, "ABC123", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].projectId).toBe("proj_abc123");
+  });
+
+  it("handles mixed case query", () => {
+    const results = tokenizedSearch(projectData, "USER Projects", getFields);
+    // Matches items with /home/user/projects in path
+    expect(results.length).toBe(3);
+  });
+
+  it("returns no matches when token is not found", () => {
+    const results = tokenizedSearch(projectData, "nonexistent", getFields);
+    expect(results.length).toBe(0);
+  });
+
+  it("returns no matches when any token fails to match", () => {
+    // "abc123" matches, but "nonexistent" does not
+    const results = tokenizedSearch(projectData, "abc123 nonexistent", getFields);
+    expect(results.length).toBe(0);
+  });
+
+  it("applies default limit of 200", () => {
+    const manyProjects: ProjectLike[] = [];
+    for (let i = 0; i < 300; i++) {
+      manyProjects.push({
+        projectId: `proj_${i}`,
+        worktree: `/path/to/project${i}`,
+        state: "exists",
+      });
+    }
+
+    const results = tokenizedSearch(manyProjects, "proj", getFields);
+    expect(results.length).toBe(200);
+  });
+
+  it("respects custom limit option", () => {
+    const results = tokenizedSearch(projectData, "proj", getFields, { limit: 2 });
+    expect(results.length).toBe(2);
+  });
+
+  it("handles null and undefined in fields", () => {
+    const dataWithNulls: ProjectLike[] = [
+      { projectId: "proj_test", worktree: "/path/to/test", state: "exists" },
+    ];
+    // getFields returns array that could have nulls
+    const getFieldsWithNulls = (p: ProjectLike) => [p.projectId, null, undefined, p.worktree];
+    const results = tokenizedSearch(dataWithNulls, "test", getFieldsWithNulls);
+    expect(results.length).toBe(1);
+  });
+
+  it("preserves original order of items", () => {
+    const results = tokenizedSearch(projectData, "proj", getFields, { limit: 5 });
+    // Items should be in original array order
+    expect(results[0].projectId).toBe("proj_abc123");
+    expect(results[4].projectId).toBe("proj_mno345");
+  });
+
+  it("handles query with extra whitespace", () => {
+    const results = tokenizedSearch(projectData, "  abc   123  ", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].projectId).toBe("proj_abc123");
+  });
+
+  it("matches TUI project search semantics", () => {
+    // This test verifies the exact TUI behavior:
+    // 1. Split query on whitespace
+    // 2. Each token must be found in projectId OR worktree
+    // 3. Case-insensitive substring matching
+    
+    // Search for "user cli" should match proj_mno345 (/home/user/projects/cli-tool)
+    const results = tokenizedSearch(projectData, "user cli", getFields);
+    expect(results.length).toBe(1);
+    expect(results[0].projectId).toBe("proj_mno345");
   });
 });
