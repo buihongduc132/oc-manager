@@ -225,6 +225,71 @@ bunx opencode-manager chat list --session sess_xyz789 --include-parts --format j
 bunx opencode-manager projects delete --id prj_old --dry-run --format json
 ```
 
+#### Token Output Format
+
+Token commands (`tokens session`, `tokens project`, `tokens global`) return structured summaries of token usage.
+
+**Session tokens** — Single session summary with `kind` discriminator:
+
+```bash
+$ bunx opencode-manager tokens session --session sess_xyz789 --format json
+
+# When token data is available (kind: "known"):
+{
+  "ok": true,
+  "data": {
+    "kind": "known",
+    "tokens": {
+      "input": 12500,
+      "output": 8750,
+      "reasoning": 2100,
+      "cacheRead": 4200,
+      "cacheWrite": 950,
+      "total": 28500
+    }
+  }
+}
+
+# When token data is unavailable (kind: "unknown"):
+{
+  "ok": true,
+  "data": {
+    "kind": "unknown",
+    "reason": "no_messages"
+  }
+}
+```
+
+The `reason` field indicates why tokens are unavailable:
+- `"missing"` — Session metadata file not found
+- `"parse_error"` — Token data couldn't be parsed
+- `"no_messages"` — Session has no messages with token data
+
+**Project/Global tokens** — Aggregate summary across multiple sessions:
+
+```bash
+$ bunx opencode-manager tokens project --project prj_abc123 --format json
+
+{
+  "ok": true,
+  "data": {
+    "total": {
+      "kind": "known",
+      "tokens": { "input": 125000, "output": 98000, "reasoning": 32000, "cacheRead": 15000, "cacheWrite": 6500, "total": 276500 }
+    },
+    "knownOnly": { "input": 125000, "output": 98000, "reasoning": 32000, "cacheRead": 15000, "cacheWrite": 6500, "total": 276500 },
+    "unknownSessions": 2
+  }
+}
+```
+
+Aggregate summary fields:
+- `total` — Combined `TokenSummary` (same structure as session tokens)
+- `knownOnly` — Token breakdown from sessions with available data only (omitted if all unknown)
+- `unknownSessions` — Count of sessions where token data was unavailable
+
+**Note:** The `tokens` commands require exact IDs (no prefix matching). Use full session/project IDs as shown in `sessions list` or `projects list` output.
+
 #### Exit Codes
 
 | Code | Meaning |

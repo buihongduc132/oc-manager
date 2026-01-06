@@ -481,15 +481,15 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Already documented in README.md:137 - verified in Phase 1.5
 
 ### 2.7 README.md Tokens Commands
-- [ ] Document `tokens session` command
-- [ ] Document `tokens session --session` flag
-- [ ] Document `tokens project` command
-- [ ] Document `tokens project --project` flag
-- [ ] Document `tokens global` command
-- [ ] Document token summary output format
-- [ ] Document `kind` field (known/unknown)
-- [ ] Document `reason` field (when unknown)
-- [ ] Document aggregate fields: `knownOnly`, `unknownSessions`
+- [x] Document `tokens session` command
+- [x] Document `tokens session --session` flag
+- [x] Document `tokens project` command
+- [x] Document `tokens project --project` flag
+- [x] Document `tokens global` command
+- [x] Document token summary output format
+- [x] Document `kind` field (known/unknown)
+- [x] Document `reason` field (when unknown)
+- [x] Document aggregate fields: `knownOnly`, `unknownSessions`
 
 ### 2.8 README.md TUI Command
 - [ ] Document `tui` subcommand to launch TUI explicitly
@@ -787,10 +787,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 58 | 74% |
+| Phase 2 | 78 | 67 | 86% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **120** | **51.7%** |
+| **Total** | **232** | **129** | **55.6%** |
