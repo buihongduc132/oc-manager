@@ -24,7 +24,14 @@
         - `visibleRecords` memo (lines 600-638): calls `searcher.search(q, { returnMatchData: true })`, sorts by score/time/id
       - **Note**: ProjectsPanel (lines 276-285) uses simple tokenized substring matching, NOT fast-fuzzy
       - **Extraction target**: lines 578-638 contain the core fuzzy search logic for sessions
-- [ ] Locate TUI clipboard usage and identify exact extraction boundaries.
+- [x] Locate TUI clipboard usage and identify exact extraction boundaries.
+      - **Function**: `copyToClipboard(text: string): void` at lines 141-151
+      - **Import**: `exec` from `node:child_process` (line 14)
+      - **Logic**: Uses `pbcopy` on macOS, `xclip -selection clipboard` on Linux
+      - **Usages**:
+        - Line 915: Copy session ID to clipboard (`y` key in SessionsPanel)
+        - Line 1644: Copy message content to clipboard (`Y` key in ChatPanel)
+      - **Extraction target**: lines 141-151 (self-contained function, no external deps beyond `exec`)
 - [ ] Create `tests/` directory at repo root.
 - [ ] Create `tests/fixtures/` directory for metadata stores.
 - [ ] Design a minimal fixture store layout matching the on-disk schema.
