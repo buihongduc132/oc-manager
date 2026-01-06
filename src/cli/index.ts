@@ -11,6 +11,7 @@ import { resolve } from "node:path"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
 import { registerProjectsCommands } from "./commands/projects"
 import { registerSessionsCommands } from "./commands/sessions"
+import { registerChatCommands } from "./commands/chat"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -113,36 +114,7 @@ function createProgram(): Command {
   registerSessionsCommands(program)
 
   // Chat subcommand group
-  const chat = program
-    .command("chat")
-    .description("View and search chat messages")
-
-  chat
-    .command("list")
-    .description("List messages in a session")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("chat list: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  chat
-    .command("show")
-    .description("Show a specific message")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("chat show: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
-
-  chat
-    .command("search")
-    .description("Search chat content across sessions")
-    .action(function (this: Command) {
-      const globalOpts = parseGlobalOptions(collectOptions(this))
-      console.log("chat search: not yet implemented")
-      console.log("Global options:", globalOpts)
-    })
+  registerChatCommands(program)
 
   // Tokens subcommand group
   const tokens = program
