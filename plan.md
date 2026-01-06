@@ -522,9 +522,17 @@
         - 1-based index assignment for display
       - Wired output through `printChatOutput()` supporting json/ndjson/table formats
       - Wrapped action with `withErrorHandling()` for consistent error output
-- [ ] Implement chat list to return message index data only.
-- [ ] Implement `--include-parts` to include parts in list output.
-- [ ] Ensure chat list ordering matches TUI (createdAt ascending).
+- [x] Implement chat list to return message index data only.
+      - `loadSessionChatIndex()` returns message metadata with `parts: null` and `previewText: "[loading...]"`
+      - Only hydrates parts when `--include-parts` flag is set
+      - Adds 1-based index for display via `indexedMessages.map()`
+- [x] Implement `--include-parts` to include parts in list output.
+      - Uses `hydrateChatMessageParts()` to load full message content when flag is set
+      - Computes `previewText` (first 200 chars) and `totalChars` from parts
+      - Parts include type (text, tool, subtask) and associated content
+- [x] Ensure chat list ordering matches TUI (createdAt ascending).
+      - `loadSessionChatIndex()` sorts by `createdAt` ascending (oldest first)
+      - Falls back to `messageId` comparison for ties/missing timestamps
 - [ ] Add tests for chat list ordering and index numbering.
 - [ ] Add `chat show` options (`--session`, `--message`, `--index`, `--clipboard`).
 - [ ] Implement chat show by `--message` id.
