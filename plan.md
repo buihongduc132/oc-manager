@@ -503,10 +503,14 @@ When documentation and code conflict, resolve using this priority:
 - [x] Document `opencode-manager tui --help` shows TUI help
 
 ### 2.10 README.md Output Formats
-- [ ] Document `json` format with envelope structure
-- [ ] Document `ndjson` format
-- [ ] Document `table` format
-- [ ] Document list metadata in JSON output
+- [x] Document `json` format with envelope structure
+  - **Finding**: Already documented in README.md:201-232 with example showing `ok`, `data`, `meta` fields
+- [x] Document `ndjson` format
+  - **Finding**: Already documented in README.md:239-250 with streaming example
+- [x] Document `table` format
+  - **Finding**: Already documented in README.md:189-199 with columnar example
+- [x] Document list metadata in JSON output
+  - **Finding**: Already documented in README.md:234-237 with `count`, `limit`, `truncated` fields
 
 ### 2.11 README.md ID Resolution
 - [x] Document prefix matching for projects
@@ -788,10 +792,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 72 | 92% |
+| Phase 2 | 78 | 76 | 97% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **134** | **57.8%** |
+| **Total** | **232** | **138** | **59.5%** |
