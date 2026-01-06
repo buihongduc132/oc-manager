@@ -35,8 +35,10 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Version is `0.3.1`
 - [x] Read `package.json` engines field and note Bun requirement (>=1.3.0)
   - **Finding**: `package.json:9` specifies `"bun": ">=1.3.0"`
-- [ ] Read `README.md` line 61 and note stated Bun version (currently says 1.1.0+)
-- [ ] Document mismatch: README says "1.1.0+" but package.json requires ">=1.3.0"
+- [x] Read `README.md` line 61 and note stated Bun version (currently says 1.1.0+)
+  - **Finding**: README.md:61 states `Bun **1.1.0+**`
+- [x] Document mismatch: README says "1.1.0+" but package.json requires ">=1.3.0"
+  - **Finding**: Confirmed mismatch - README says "1.1.0+" but package.json:9 requires ">=1.3.0"
 
 ### 1.2 CLI Global Options Audit
 - [ ] Read `src/cli/index.ts` and extract all global options
@@ -541,11 +543,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 2 | 4% |
+| Phase 1 | 54 | 4 | 7% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **2** | **0.9%** |
+| **Total** | **227** | **4** | **1.8%** |
