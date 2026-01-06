@@ -2,7 +2,12 @@
 
 ## Phase 0 - Baseline and Test Infra
 - [x] Review `src/bin/opencode-manager.ts` to confirm current entrypoint behavior.
-- [ ] Review `src/opencode-tui.tsx` to locate `parseArgs()` and TUI boot path.
+- [x] Review `src/opencode-tui.tsx` to locate `parseArgs()` and TUI boot path.
+      - `parseArgs()`: lines 2111-2129, parses `--root` and `--help` flags
+      - Boot path: `bootstrap()` at lines 2180-2184 calls `parseArgs()`, creates renderer via `createCliRenderer()`, renders `<App root={root} />`
+      - Uses `@opentui/core` + `@opentui/react` for TUI framework
+      - Fuzzy search: `fast-fuzzy` Searcher class (line 47, used at line 594)
+      - Clipboard: `copyToClipboard()` at lines 141-151 uses `pbcopy`/`xclip`
 - [ ] Review `src/lib/opencode-data.ts` to list required data APIs for CLI parity.
 - [ ] Locate TUI fuzzy search usage and identify exact extraction boundaries.
 - [ ] Locate TUI clipboard usage and identify exact extraction boundaries.
