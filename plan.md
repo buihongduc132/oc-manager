@@ -240,9 +240,18 @@ When documentation and code conflict, resolve using this priority:
   - **DISCREPANCY-008**: README missing documentation that `tokens` commands require exact IDs (no prefix matching)
 
 ### 1.14 Clipboard Audit
-- [ ] Read `src/lib/clipboard.ts`
-- [ ] Document: `pbcopy` (macOS), `xclip` (Linux), no Windows support
-- [ ] Compare against README.md clipboard section
+- [x] Read `src/lib/clipboard.ts`
+  - **Finding**: `src/lib/clipboard.ts:10-24` implements `copyToClipboard()` function
+  - **Finding**: Uses `pbcopy` on macOS (`process.platform === "darwin"`)
+  - **Finding**: Uses `xclip -selection clipboard` on Linux (all other platforms)
+  - **Finding**: No Windows-specific handling (falls through to xclip which won't work)
+- [x] Document: `pbcopy` (macOS), `xclip` (Linux), no Windows support
+  - **Finding**: Confirmed - macOS uses built-in `pbcopy`, Linux requires `xclip`, Windows not supported
+- [x] Compare against README.md clipboard section
+  - **Finding**: README.md:229-239 documents clipboard support accurately
+  - **Finding**: Platform table correctly shows macOS (pbcopy), Linux (xclip required), Windows (not supported)
+  - **Finding**: README correctly notes "clipboard operations will fail silently in the TUI or show an error message in the CLI"
+  - **Finding**: No discrepancies - README clipboard documentation is complete and accurate
 
 ### 1.15 Screenshots Audit
 - [ ] View `home-screen.png` and note what it shows
@@ -642,11 +651,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 68 | 126% |
+| Phase 1 | 57 | 71 | 125% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **68** | **30.0%** |
+| **Total** | **230** | **71** | **30.9%** |
