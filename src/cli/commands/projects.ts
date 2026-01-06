@@ -6,6 +6,8 @@
 
 import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
+import { loadProjectRecords, type ProjectRecord } from "../../lib/opencode-data"
+import { getOutputOptions, printProjectsOutput } from "../output"
 
 /**
  * Collect all options from a command and its ancestors.
@@ -79,13 +81,16 @@ export function registerProjectsCommands(parent: Command): void {
 /**
  * Handle the projects list command.
  */
-function handleProjectsList(
+async function handleProjectsList(
   globalOpts: GlobalOptions,
   listOpts: ProjectsListOptions
-): void {
-  console.log("projects list: not yet implemented")
-  console.log("Global options:", globalOpts)
-  console.log("List options:", listOpts)
+): Promise<void> {
+  // Load project records from the data layer
+  const projects = await loadProjectRecords({ root: globalOpts.root })
+
+  // Output the projects using the appropriate formatter
+  const outputOpts = getOutputOptions(globalOpts)
+  printProjectsOutput(projects, outputOpts)
 }
 
 /**

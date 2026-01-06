@@ -210,7 +210,10 @@
       - `--missing-only` and `--search` defined in `src/cli/commands/projects.ts` (lines 53-54)
       - `--limit` and `--format` are global options in `src/cli/index.ts` (lines 87-96)
       - All options properly passed to `handleProjectsList()` and verified working
-- [ ] Implement loading project records from `opencode-data`.
+- [x] Implement loading project records from `opencode-data`.
+      - Updated `handleProjectsList()` in `src/cli/commands/projects.ts` to use `loadProjectRecords()` from `opencode-data`
+      - Wired output through `printProjectsOutput()` from `output.ts`
+      - Supports json, ndjson, and table output formats via `--format` flag
 - [ ] Implement missing-only filter for projects.
 - [ ] Implement project tokenized search behavior (match TUI semantics).
 - [ ] Implement `--limit` cap (default 200) for projects list.
