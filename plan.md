@@ -137,7 +137,13 @@
       - Tests verify nested subcommand help (projects list, sessions list, chat show, tokens session)
 
 ## Phase 2 - Output Formatting and Read-Only Commands
-- [ ] Create `src/cli/formatters/json.ts` with standard JSON output helpers.
+- [x] Create `src/cli/formatters/json.ts` with standard JSON output helpers.
+      - Created formatter with `formatJson()`, `formatJsonArray()` for basic output
+      - Added response envelope helpers: `formatJsonSuccess()`, `formatJsonArraySuccess()`, `formatJsonError()`
+      - Includes `JsonResponse<T>` type with ok/data/error/meta structure
+      - Auto-detects TTY for pretty printing, handles Date serialization to ISO strings
+      - Added corresponding `print*` functions for stdout output
+      - Added tests in `tests/cli/formatters/json.test.ts` (20 tests)
 - [ ] Create `src/cli/formatters/ndjson.ts` for streaming record arrays.
 - [ ] Create `src/cli/formatters/table.ts` with column definitions for `projects list`.
 - [ ] Extend table formatter for `sessions list` columns and truncation.
