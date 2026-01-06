@@ -161,7 +161,12 @@
       - Added `sessionListColumnsCompact` (4 columns: #, Title, SessionID, Updated)
       - Added `formatSessionsTable()` and `printSessionsTable()` convenience functions
       - Added comprehensive tests (18 new tests across 3 describe blocks)
-- [ ] Extend table formatter for `chat list` columns and truncation.
+- [x] Extend table formatter for `chat list` columns and truncation.
+      - Added `formatChatRole()` and `formatTokenCount()` helper formatters
+      - Added `chatListColumns` (6 columns: #, Role, MessageID, Preview, Tokens, Created)
+      - Added `chatListColumnsCompact` (4 columns: #, R, Preview, Tokens)
+      - Added `formatChatTable()` and `printChatTable()` convenience functions
+      - Added comprehensive tests (26 new tests across 5 describe blocks)
 - [ ] Extend table formatter for `tokens` summary formatting.
 - [ ] Create `src/cli/output.ts` to select formatter by `--format`.
 - [ ] Add shared error/exit helpers for codes 1-4 in CLI layer.

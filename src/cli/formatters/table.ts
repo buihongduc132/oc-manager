@@ -5,7 +5,7 @@
  * Supports column definitions, truncation, and alignment.
  */
 
-import type { ProjectRecord, ProjectState, SessionRecord } from "../../lib/opencode-data"
+import type { ChatMessage, ChatRole, ProjectRecord, ProjectState, SessionRecord } from "../../lib/opencode-data"
 
 // ========================
 // Column Definition Types
@@ -412,4 +412,137 @@ export function printSessionsTable(
   options?: TableFormatOptions & { compact?: boolean }
 ): void {
   console.log(formatSessionsTable(sessions, options))
+}
+
+// ========================
+// Chat List Columns
+// ========================
+
+/**
+ * Format chat role with visual indicator.
+ */
+export function formatChatRole(role: ChatRole): string {
+  switch (role) {
+    case "user":
+      return "U"
+    case "assistant":
+      return "A"
+    case "unknown":
+      return "?"
+  }
+}
+
+/**
+ * Format token count for display.
+ * Shows abbreviated number with K suffix for thousands.
+ */
+export function formatTokenCount(count: number | null | undefined): string {
+  if (count == null || count === 0) {
+    return "-"
+  }
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}K`
+  }
+  return String(count)
+}
+
+/**
+ * Column definitions for chat list output.
+ *
+ * Columns: #, Role, MessageID, Preview, Tokens, Created
+ */
+export const chatListColumns: ColumnDefinition<ChatMessage & { index: number }>[] = [
+  {
+    header: "#",
+    width: 4,
+    align: "right",
+    accessor: (row) => row.index,
+  },
+  {
+    header: "Role",
+    width: 4,
+    align: "center",
+    accessor: (row) => row.role,
+    format: (role) => formatChatRole(role as ChatRole),
+  },
+  {
+    header: "Message ID",
+    width: 24,
+    align: "left",
+    accessor: (row) => row.messageId,
+  },
+  {
+    header: "Preview",
+    width: 40,
+    align: "left",
+    accessor: (row) => row.previewText,
+  },
+  {
+    header: "Tokens",
+    width: 8,
+    align: "right",
+    accessor: (row) => row.tokens?.total,
+    format: (val) => formatTokenCount(val as number | null | undefined),
+  },
+  {
+    header: "Created",
+    width: 16,
+    align: "left",
+    accessor: (row) => row.createdAt,
+    format: (val) => formatDateForTable(val as Date | null | undefined),
+  },
+]
+
+/**
+ * Compact column definitions for chat list (narrower terminals).
+ */
+export const chatListColumnsCompact: ColumnDefinition<ChatMessage & { index: number }>[] = [
+  {
+    header: "#",
+    width: 4,
+    align: "right",
+    accessor: (row) => row.index,
+  },
+  {
+    header: "R",
+    width: 1,
+    align: "center",
+    accessor: (row) => row.role,
+    format: (role) => formatChatRole(role as ChatRole),
+  },
+  {
+    header: "Preview",
+    width: 50,
+    align: "left",
+    accessor: (row) => row.previewText,
+  },
+  {
+    header: "Tokens",
+    width: 8,
+    align: "right",
+    accessor: (row) => row.tokens?.total,
+    format: (val) => formatTokenCount(val as number | null | undefined),
+  },
+]
+
+/**
+ * Format a chat list as a table.
+ * Messages are expected to have an index property added.
+ */
+export function formatChatTable(
+  messages: (ChatMessage & { index: number })[],
+  options?: TableFormatOptions & { compact?: boolean }
+): string {
+  const columns = options?.compact ? chatListColumnsCompact : chatListColumns
+  return formatTable(messages, columns, options)
+}
+
+/**
+ * Print a chat list table to stdout.
+ */
+export function printChatTable(
+  messages: (ChatMessage & { index: number })[],
+  options?: TableFormatOptions & { compact?: boolean }
+): void {
+  console.log(formatChatTable(messages, options))
 }

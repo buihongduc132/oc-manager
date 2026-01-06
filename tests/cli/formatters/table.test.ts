@@ -13,15 +13,20 @@ import {
   formatTable,
   formatDateForTable,
   formatProjectState,
-  formatProjectsTable,
-  formatSessionsTable,
   projectListColumns,
+  projectListColumnsCompact,
+  formatProjectsTable,
   sessionListColumns,
   sessionListColumnsCompact,
+  formatSessionsTable,
+  formatChatRole,
+  formatTokenCount,
+  chatListColumns,
+  chatListColumnsCompact,
+  formatChatTable,
   type ColumnDefinition,
-  type Alignment,
 } from "../../../src/cli/formatters/table"
-import type { ProjectRecord, SessionRecord } from "../../../src/lib/opencode-data"
+import type { ChatMessage, ProjectRecord, SessionRecord } from "../../../src/lib/opencode-data"
 
 // ========================
 // Helper Test Data
@@ -561,6 +566,276 @@ describe("formatSessionsTable", () => {
 
   it("should handle custom separator", () => {
     const result = formatSessionsTable(mockSessions, { separator: " | " })
+    expect(result).toContain(" | ")
+  })
+})
+
+// ========================
+// formatChatRole tests
+// ========================
+
+describe("formatChatRole", () => {
+  it("should format user role as U", () => {
+    expect(formatChatRole("user")).toBe("U")
+  })
+
+  it("should format assistant role as A", () => {
+    expect(formatChatRole("assistant")).toBe("A")
+  })
+
+  it("should format unknown role as ?", () => {
+    expect(formatChatRole("unknown")).toBe("?")
+  })
+})
+
+// ========================
+// formatTokenCount tests
+// ========================
+
+describe("formatTokenCount", () => {
+  it("should format null as dash", () => {
+    expect(formatTokenCount(null)).toBe("-")
+  })
+
+  it("should format undefined as dash", () => {
+    expect(formatTokenCount(undefined)).toBe("-")
+  })
+
+  it("should format zero as dash", () => {
+    expect(formatTokenCount(0)).toBe("-")
+  })
+
+  it("should format small numbers as-is", () => {
+    expect(formatTokenCount(123)).toBe("123")
+    expect(formatTokenCount(999)).toBe("999")
+  })
+
+  it("should format thousands with K suffix", () => {
+    expect(formatTokenCount(1000)).toBe("1.0K")
+    expect(formatTokenCount(1500)).toBe("1.5K")
+    expect(formatTokenCount(12345)).toBe("12.3K")
+  })
+})
+
+// ========================
+// chatListColumns tests
+// ========================
+
+describe("chatListColumns", () => {
+  const mockMessage: ChatMessage & { index: number } = {
+    index: 1,
+    sessionId: "sess-abc123",
+    messageId: "msg-xyz789",
+    role: "assistant",
+    createdAt: new Date("2024-01-15T10:30:00.000Z"),
+    parentId: "msg-parent",
+    tokens: {
+      input: 1000,
+      output: 500,
+      reasoning: 200,
+      cacheRead: 100,
+      cacheWrite: 50,
+      total: 1850,
+    },
+    parts: null,
+    previewText: "Here is the implementation...",
+    totalChars: null,
+  }
+
+  it("should have correct column count", () => {
+    expect(chatListColumns.length).toBe(6)
+  })
+
+  it("should have index column", () => {
+    const col = chatListColumns.find((c) => c.header === "#")
+    expect(col).toBeDefined()
+    expect(col!.accessor(mockMessage)).toBe(1)
+    expect(col!.align).toBe("right")
+  })
+
+  it("should have role column with formatter", () => {
+    const col = chatListColumns.find((c) => c.header === "Role")
+    expect(col).toBeDefined()
+    expect(col!.format).toBeDefined()
+    const role = col!.accessor(mockMessage)
+    expect(col!.format!(role)).toBe("A")
+  })
+
+  it("should have messageId column", () => {
+    const col = chatListColumns.find((c) => c.header === "Message ID")
+    expect(col).toBeDefined()
+    expect(col!.accessor(mockMessage)).toBe("msg-xyz789")
+  })
+
+  it("should have preview column", () => {
+    const col = chatListColumns.find((c) => c.header === "Preview")
+    expect(col).toBeDefined()
+    expect(col!.accessor(mockMessage)).toBe("Here is the implementation...")
+    expect(col!.width).toBe(40)
+  })
+
+  it("should have tokens column with formatter", () => {
+    const col = chatListColumns.find((c) => c.header === "Tokens")
+    expect(col).toBeDefined()
+    expect(col!.format).toBeDefined()
+    expect(col!.align).toBe("right")
+    const tokens = col!.accessor(mockMessage)
+    expect(col!.format!(tokens)).toBe("1.9K")
+  })
+
+  it("should have created column with date formatter", () => {
+    const col = chatListColumns.find((c) => c.header === "Created")
+    expect(col).toBeDefined()
+    expect(col!.format).toBeDefined()
+    const date = col!.accessor(mockMessage)
+    expect(col!.format!(date)).toBe("2024-01-15 10:30")
+  })
+
+  it("should handle user messages without tokens", () => {
+    const userMessage: ChatMessage & { index: number } = {
+      ...mockMessage,
+      index: 2,
+      role: "user",
+      tokens: undefined,
+    }
+    const roleCol = chatListColumns.find((c) => c.header === "Role")
+    const tokensCol = chatListColumns.find((c) => c.header === "Tokens")
+    expect(roleCol!.format!(roleCol!.accessor(userMessage))).toBe("U")
+    expect(tokensCol!.format!(tokensCol!.accessor(userMessage))).toBe("-")
+  })
+})
+
+// ========================
+// chatListColumnsCompact tests
+// ========================
+
+describe("chatListColumnsCompact", () => {
+  const mockMessage: ChatMessage & { index: number } = {
+    index: 3,
+    sessionId: "sess-abc123",
+    messageId: "msg-def456",
+    role: "user",
+    createdAt: new Date("2024-01-15T09:00:00.000Z"),
+    tokens: undefined,
+    parts: null,
+    previewText: "Can you help me with this code?",
+    totalChars: null,
+  }
+
+  it("should have fewer columns than full version", () => {
+    expect(chatListColumnsCompact.length).toBeLessThan(chatListColumns.length)
+    expect(chatListColumnsCompact.length).toBe(4)
+  })
+
+  it("should not have messageId column", () => {
+    const col = chatListColumnsCompact.find((c) => c.header === "Message ID")
+    expect(col).toBeUndefined()
+  })
+
+  it("should not have created column", () => {
+    const col = chatListColumnsCompact.find((c) => c.header === "Created")
+    expect(col).toBeUndefined()
+  })
+
+  it("should have narrower role column (R)", () => {
+    const col = chatListColumnsCompact.find((c) => c.header === "R")
+    expect(col).toBeDefined()
+    expect(col!.width).toBe(1)
+  })
+
+  it("should have wider preview column", () => {
+    const col = chatListColumnsCompact.find((c) => c.header === "Preview")
+    expect(col).toBeDefined()
+    expect(col!.width).toBe(50)
+  })
+})
+
+// ========================
+// formatChatTable tests
+// ========================
+
+describe("formatChatTable", () => {
+  const mockMessages: (ChatMessage & { index: number })[] = [
+    {
+      index: 1,
+      sessionId: "sess-abc123",
+      messageId: "msg-001",
+      role: "user",
+      createdAt: new Date("2024-01-15T10:00:00.000Z"),
+      tokens: undefined,
+      parts: null,
+      previewText: "How do I implement a REST API?",
+      totalChars: null,
+    },
+    {
+      index: 2,
+      sessionId: "sess-abc123",
+      messageId: "msg-002",
+      role: "assistant",
+      createdAt: new Date("2024-01-15T10:01:00.000Z"),
+      tokens: {
+        input: 500,
+        output: 1200,
+        reasoning: 300,
+        cacheRead: 0,
+        cacheWrite: 0,
+        total: 2000,
+      },
+      parts: null,
+      previewText: "I can help you implement a REST API. Here are the steps...",
+      totalChars: null,
+    },
+  ]
+
+  it("should format chat table with headers", () => {
+    const result = formatChatTable(mockMessages)
+    const lines = result.split("\n")
+    expect(lines.length).toBe(4) // header + underline + 2 rows
+    expect(lines[0]).toContain("#")
+    expect(lines[0]).toContain("Role")
+    expect(lines[0]).toContain("Message ID")
+    expect(lines[0]).toContain("Preview")
+    expect(lines[0]).toContain("Tokens")
+    expect(lines[0]).toContain("Created")
+  })
+
+  it("should format roles correctly", () => {
+    const result = formatChatTable(mockMessages)
+    expect(result).toContain(" U ") // user role
+    expect(result).toContain(" A ") // assistant role
+  })
+
+  it("should format tokens correctly", () => {
+    const result = formatChatTable(mockMessages)
+    expect(result).toContain("2.0K") // assistant tokens
+    expect(result).toContain("-") // user has no tokens
+  })
+
+  it("should truncate long previews", () => {
+    const result = formatChatTable(mockMessages)
+    // Second message has a long preview that should be truncated (40 char column width)
+    // "I can help you implement a REST API. Here are the steps..." is 58 chars
+    expect(result).toContain("I can help you implement a REST API. He…")
+  })
+
+  it("should use compact columns when specified", () => {
+    const result = formatChatTable(mockMessages, { compact: true })
+    const lines = result.split("\n")
+    // Compact header should not have "Message ID" or "Created" columns
+    expect(lines[0]).not.toContain("Message ID")
+    expect(lines[0]).not.toContain("Created")
+    expect(lines[0]).toContain("Preview")
+    expect(lines[0]).toContain("Tokens")
+  })
+
+  it("should format empty chat list", () => {
+    const result = formatChatTable([])
+    const lines = result.split("\n")
+    expect(lines.length).toBe(2) // header + underline only
+  })
+
+  it("should handle custom separator", () => {
+    const result = formatChatTable(mockMessages, { separator: " | " })
     expect(result).toContain(" | ")
   })
 })
