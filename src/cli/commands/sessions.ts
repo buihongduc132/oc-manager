@@ -9,8 +9,10 @@ import { Command, type OptionValues } from "commander"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
 import {
   loadSessionRecords,
+  loadProjectRecords,
   deleteSessionMetadata,
   updateSessionTitle,
+  moveSession,
   type SessionRecord,
 } from "../../lib/opencode-data"
 import {
@@ -21,7 +23,7 @@ import {
   printSuccessOutput,
 } from "../output"
 import { fuzzySearch, type SearchCandidate } from "../../lib/search"
-import { resolveSessionId } from "../resolvers"
+import { resolveSessionId, resolveProjectId } from "../resolvers"
 import { requireConfirmation, withErrorHandling, FileOperationError, UsageError } from "../errors"
 import { copyToBackupDir, formatBackupResult } from "../backup"
 
@@ -162,14 +164,17 @@ export function registerSessionsCommands(parent: Command): void {
     .description("Move a session to another project")
     .requiredOption("--session <sessionId>", "Session ID to move")
     .requiredOption("--to <projectId>", "Target project ID")
-    .action(function (this: Command) {
+    .action(async function (this: Command) {
       const globalOpts = parseGlobalOptions(collectOptions(this))
       const cmdOpts = this.opts()
       const moveOpts: SessionsMoveOptions = {
         session: String(cmdOpts.session),
         to: String(cmdOpts.to),
       }
-      handleSessionsMove(globalOpts, moveOpts)
+      await withErrorHandling(handleSessionsMove, getOutputOptions(globalOpts).format)(
+        globalOpts,
+        moveOpts
+      )
     })
 
   sessions
@@ -384,14 +389,58 @@ async function handleSessionsRename(
 
 /**
  * Handle the sessions move command.
+ *
+ * This command moves a session to a different project.
+ * The session file is moved to the target project's session directory.
+ *
+ * Exit codes:
+ * - 0: Success
+ * - 3: Session or target project not found
+ * - 4: File operation failure
  */
-function handleSessionsMove(
+async function handleSessionsMove(
   globalOpts: GlobalOptions,
   moveOpts: SessionsMoveOptions
-): void {
-  console.log("sessions move: not yet implemented")
-  console.log("Global options:", globalOpts)
-  console.log("Move options:", moveOpts)
+): Promise<void> {
+  const outputOpts = getOutputOptions(globalOpts)
+
+  // Resolve session ID to a session record
+  const { session } = await resolveSessionId(moveOpts.session, {
+    root: globalOpts.root,
+    allowPrefix: true,
+  })
+
+  // Validate target project exists
+  // Use prefix matching for convenience, but require exactly one match
+  await resolveProjectId(moveOpts.to, {
+    root: globalOpts.root,
+    allowPrefix: true,
+  })
+
+  // Check if session is already in the target project
+  if (session.projectId === moveOpts.to) {
+    printSuccessOutput(
+      `Session ${session.sessionId} is already in project ${moveOpts.to}`,
+      { sessionId: session.sessionId, projectId: moveOpts.to, moved: false },
+      outputOpts.format
+    )
+    return
+  }
+
+  // Move the session
+  const newRecord = await moveSession(session, moveOpts.to, globalOpts.root)
+
+  // Output success
+  printSuccessOutput(
+    `Moved session ${session.sessionId} to project ${moveOpts.to}`,
+    {
+      sessionId: session.sessionId,
+      fromProject: session.projectId,
+      toProject: moveOpts.to,
+      newPath: newRecord.filePath,
+    },
+    outputOpts.format
+  )
 }
 
 /**

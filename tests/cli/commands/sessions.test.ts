@@ -615,3 +615,110 @@ describe("sessions rename", () => {
     expect(session.title).toBe("Trimmed Title");
   });
 });
+
+describe("sessions move", () => {
+  let tempDir: string;
+  let tempRoot: string;
+
+  beforeEach(async () => {
+    // Create temporary directories for each test
+    tempDir = await fs.mkdtemp(join(tmpdir(), "opencode-test-"));
+    tempRoot = join(tempDir, "store");
+
+    // Copy fixture store to temp directory
+    await fs.cp(FIXTURE_STORE_ROOT, tempRoot, { recursive: true });
+
+    // Create a second project directory for move target
+    const targetProjectDir = join(tempRoot, "storage", "session", "proj_missing");
+    await fs.mkdir(targetProjectDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    // Clean up temp directory
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("moves a session to another project successfully", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --root ${tempRoot} --format json`.quiet();
+    
+    expect(result.exitCode).toBe(0);
+    
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
+    expect(parsed.data).toHaveProperty("fromProject", "proj_present");
+    expect(parsed.data).toHaveProperty("toProject", "proj_missing");
+  });
+
+  it("removes session from source project after move", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --root ${tempRoot} --format json`.quiet();
+
+    // Verify session is no longer in source project
+    const originalFile = join(tempRoot, "storage", "session", "proj_present", "session_add_tests.json");
+    const existsInSource = await fs.access(originalFile).then(() => true).catch(() => false);
+    expect(existsInSource).toBe(false);
+  });
+
+  it("creates session in target project after move", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --root ${tempRoot} --format json`.quiet();
+
+    // Verify session exists in target project
+    const targetFile = join(tempRoot, "storage", "session", "proj_missing", "session_add_tests.json");
+    const existsInTarget = await fs.access(targetFile).then(() => true).catch(() => false);
+    expect(existsInTarget).toBe(true);
+  });
+
+  it("updates projectID in session file", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --root ${tempRoot} --format json`.quiet();
+
+    // Read the moved session file and verify projectID
+    const targetFile = join(tempRoot, "storage", "session", "proj_missing", "session_add_tests.json");
+    const content = await fs.readFile(targetFile, "utf8");
+    const payload = JSON.parse(content);
+    expect(payload.projectID).toBe("proj_missing");
+  });
+
+  it("supports prefix matching for session ID", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions move --session session_add --to proj_missing --root ${tempRoot} --format json`.quiet();
+    
+    expect(result.exitCode).toBe(0);
+    
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed.data.sessionId).toBe("session_add_tests");
+  });
+
+  it("returns exit code 3 for non-existent session", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions move --session nonexistent --to proj_missing --root ${tempRoot} --format json`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(3);
+  });
+
+  it("returns exit code 3 for non-existent target project", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to nonexistent_project --root ${tempRoot} --format json`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(3);
+  });
+
+  it("handles move to same project gracefully", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_present --root ${tempRoot} --format json`.quiet();
+    
+    expect(result.exitCode).toBe(0);
+    
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("moved", false);
+    expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
+  });
+
+  it("session is still accessible after move", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --root ${tempRoot} --format json`.quiet();
+
+    // Verify session appears in list with new project
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --root ${tempRoot} --format json --project proj_missing`.quiet();
+    const parsed = JSON.parse(listResult.stdout.toString());
+    
+    const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
+    expect(session).toBeDefined();
+    expect(session.projectId).toBe("proj_missing");
+  });
+});
