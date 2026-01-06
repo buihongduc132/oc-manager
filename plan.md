@@ -268,9 +268,18 @@
 - [x] Wire `sessions list` output through `output.ts`.
       - Lines 229-231: uses `getOutputOptions()` and `printSessionsOutput()` from output.ts
       - Supports json, ndjson, and table output formats via `--format` flag
-- [ ] Add JSON output test for `sessions list`.
-- [ ] Add NDJSON output test for `sessions list`.
-- [ ] Add table output test for `sessions list`.
+- [x] Add JSON output test for `sessions list`.
+      - Created `tests/cli/commands/sessions.test.ts` with 8 tests
+      - Tests verify JSON envelope, session fields, Date serialization, meta info
+      - Tests verify --project, --search, --limit filters work correctly
+- [x] Add NDJSON output test for `sessions list`.
+      - Added 8 tests in `tests/cli/commands/sessions.test.ts` under `describe("sessions list --format ndjson")`
+      - Tests verify: valid NDJSON format, session count, field presence, ISO date serialization
+      - Tests verify: no envelope wrapper (raw records), --project, --search, --limit filters
+- [x] Add table output test for `sessions list`.
+      - Added 8 tests in `tests/cli/commands/sessions.test.ts` under `describe("sessions list --format table")`
+      - Tests verify: headers present, header underline, data rows, correct row count
+      - Tests verify: --project, --search, --limit filters, and default sort order (updated desc)
 - [ ] Add test to ensure session list order matches TUI for a given search query.
 
 ### Tokens
