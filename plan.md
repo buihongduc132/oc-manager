@@ -384,8 +384,13 @@
 - [x] Add test for `projects delete --dry-run`.
       - Added 6 tests in `tests/cli/commands/projects.test.ts` under "projects delete --dry-run"
       - Tests cover: JSON output format/fields, file path, table format, no actual deletion, prefix matching, exit code 3
-- [ ] Add test for `projects delete --backup-dir`.
-- [ ] Add test for `projects delete` requires `--yes`.
+- [x] Add test for `projects delete --backup-dir`.
+      - Added 6 tests in `tests/cli/commands/projects.test.ts` under "projects delete --backup-dir"
+      - Tests cover: backup creation, file contents, original deletion, success output, structure preservation
+      - Uses temp directories with beforeEach/afterEach cleanup to avoid modifying fixtures
+- [x] Add test for `projects delete` requires `--yes`.
+      - Added 3 tests in `tests/cli/commands/projects.test.ts` under "projects delete requires --yes"
+      - Tests verify: exit code 2, error mentions --yes flag, error suggests --dry-run
 
 ### Sessions delete
 - [ ] Add `sessions delete` options (`--session`, `--yes`, `--dry-run`, `--backup-dir`).
