@@ -41,10 +41,14 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Confirmed mismatch - README says "1.1.0+" but package.json:9 requires ">=1.3.0"
 
 ### 1.2 CLI Global Options Audit
-- [ ] Read `src/cli/index.ts` and extract all global options
-- [ ] List global options: `--root`, `--format`, `--limit`, `--sort`, `--yes`, `--dry-run`, `--quiet`, `--clipboard`, `--backup-dir`
-- [ ] Compare against README.md CLI documentation section
-- [ ] Document any missing or outdated options in README
+- [x] Read `src/cli/index.ts` and extract all global options
+  - **Finding**: 9 global options defined in `src/cli/index.ts:82-110`
+- [x] List global options: `--root`, `--format`, `--limit`, `--sort`, `--yes`, `--dry-run`, `--quiet`, `--clipboard`, `--backup-dir`
+  - **Finding**: All 9 options confirmed with short flags: `-r`, `-f`, `-l`, (none), `-y`, `-n`, `-q`, `-c`, (none)
+- [x] Compare against README.md CLI documentation section
+  - **Finding**: README.md:107-119 documents all 9 options correctly
+- [x] Document any missing or outdated options in README
+  - **Finding**: No discrepancies - README CLI Global Options section is accurate and complete
 
 ### 1.3 Projects Command Audit
 - [ ] Read `src/cli/commands/projects.ts` lines 70-130
@@ -543,11 +547,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 4 | 7% |
+| Phase 1 | 54 | 8 | 15% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **4** | **1.8%** |
+| **Total** | **227** | **8** | **3.5%** |
