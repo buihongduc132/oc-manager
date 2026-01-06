@@ -254,10 +254,14 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: No discrepancies - README clipboard documentation is complete and accurate
 
 ### 1.15 Screenshots Audit
-- [ ] View `home-screen.png` and note what it shows
-- [ ] View `help-screen.png` and note what it shows
-- [ ] Compare against current TUI appearance
-- [ ] Document if screenshots need updating
+- [x] View `home-screen.png` and note what it shows
+  - **Finding**: Shows two-panel layout (Projects left, Sessions right), header with Global Tokens display, tab indicators, filter stats, and details pane
+- [x] View `help-screen.png` and note what it shows
+  - **Finding**: Shows help overlay modal with four sections (Global, Projects, Sessions, Tips), lists keyboard shortcuts with cyan/yellow highlights
+- [x] Compare against current TUI appearance
+  - **Finding**: Screenshots match current TUI appearance - same layout, styling, key bindings, and overall design
+- [x] Document if screenshots need updating
+  - **Finding**: Screenshots are UP-TO-DATE - no updates needed
 
 ### 1.16 PROJECT-SUMMARY.md Audit
 - [ ] Read `PROJECT-SUMMARY.md` architecture section
@@ -651,11 +655,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 57 | 71 | 125% |
+| Phase 1 | 57 | 75 | 132% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **230** | **71** | **30.9%** |
+| **Total** | **230** | **75** | **32.6%** |
