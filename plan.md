@@ -190,7 +190,11 @@
       - Added validation helpers: requireConfirmation, projectNotFound, sessionNotFound, messageNotFound
       - Added withErrorHandling wrapper for async command handlers
       - Added tests in `tests/cli/errors.test.ts` (35 tests)
-- [ ] Extract fuzzy search into `src/lib/search.ts` (use fast-fuzzy).
+- [x] Extract fuzzy search into `src/lib/search.ts` (use fast-fuzzy).
+      - Created `src/lib/search.ts` with `createSearcher()`, `fuzzySearch()`, `fuzzySearchItems()`, `buildSearchText()`
+      - Exports types: `SearchCandidate<T>`, `SearchResult<T>`, `FuzzySearchOptions`
+      - Default limit of 200 results matches TUI behavior
+      - `buildSearchText()` helper normalizes whitespace for search text construction
 - [ ] Update TUI search to call `src/lib/search.ts`.
 - [ ] Add tests for `src/lib/search.ts` basic ordering with fixtures.
 
