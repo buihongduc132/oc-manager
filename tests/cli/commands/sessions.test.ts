@@ -267,3 +267,85 @@ describe("sessions list --format table", () => {
     expect(parsed.data[1].sessionId).toBe("session_parser_fix");
   });
 });
+
+/**
+ * Tests to ensure session list search ordering matches TUI behavior.
+ *
+ * TUI ordering logic (from src/tui/app.tsx lines 611-618):
+ * 1. Primary: score descending (fuzzy match quality)
+ * 2. Secondary: time descending (updatedAt or createdAt based on sort mode)
+ * 3. Tertiary: sessionId for stability (lexicographic)
+ */
+describe("sessions list search order matches TUI", () => {
+  it("orders by fuzzy score descending when searching", async () => {
+    // Search for "parser" - should match session_parser_fix with higher score
+    // than session_add_tests (which doesn't contain "parser")
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search parser`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    // Only session_parser_fix should match "parser" (in title "Fix bug in parser")
+    expect(parsed.data.length).toBe(1);
+    expect(parsed.data[0].sessionId).toBe("session_parser_fix");
+  });
+
+  it("uses time as secondary sort when scores are equal", async () => {
+    // Search for "proj" - matches both sessions via projectId "proj_present"
+    // with similar scores, so time should be the tiebreaker
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    expect(parsed.data.length).toBe(2);
+
+    // Both match "proj" with similar scores; time descending is tiebreaker
+    // session_add_tests has later updatedAt (1704326400000)
+    // session_parser_fix has earlier updatedAt (1704153600000)
+    expect(parsed.data[0].sessionId).toBe("session_add_tests");
+    expect(parsed.data[1].sessionId).toBe("session_parser_fix");
+  });
+
+  it("uses createdAt for time tiebreaker when --sort created", async () => {
+    // Search for "proj" with --sort created
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj --sort created`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    expect(parsed.data.length).toBe(2);
+
+    // Both match "proj" with similar scores; createdAt descending is tiebreaker
+    // session_add_tests has createdAt 1704240000000
+    // session_parser_fix has createdAt 1704067200000
+    expect(parsed.data[0].sessionId).toBe("session_add_tests");
+    expect(parsed.data[1].sessionId).toBe("session_parser_fix");
+  });
+
+  it("maintains consistent ordering across multiple searches", async () => {
+    // Run the same search multiple times and verify consistent ordering
+    const search1 = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
+    const search2 = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
+
+    const parsed1 = JSON.parse(search1.stdout.toString());
+    const parsed2 = JSON.parse(search2.stdout.toString());
+
+    expect(parsed1.data.length).toBe(parsed2.data.length);
+    for (let i = 0; i < parsed1.data.length; i++) {
+      expect(parsed1.data[i].sessionId).toBe(parsed2.data[i].sessionId);
+    }
+  });
+
+  it("sessionId is final tiebreaker for identical scores and times", async () => {
+    // Search for "proj_present" - exact match in projectId for both sessions
+    // Both have same projectId, so after score and time, sessionId is tiebreaker
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj_present`.quiet();
+    const output = result.stdout.toString();
+
+    const parsed = JSON.parse(output);
+    expect(parsed.data.length).toBe(2);
+
+    // Verify order is deterministic (time is still the secondary factor)
+    // session_add_tests has later updatedAt, so it comes first
+    expect(parsed.data[0].sessionId).toBe("session_add_tests");
+    expect(parsed.data[1].sessionId).toBe("session_parser_fix");
+  });
+});

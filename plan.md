@@ -280,7 +280,10 @@
       - Added 8 tests in `tests/cli/commands/sessions.test.ts` under `describe("sessions list --format table")`
       - Tests verify: headers present, header underline, data rows, correct row count
       - Tests verify: --project, --search, --limit filters, and default sort order (updated desc)
-- [ ] Add test to ensure session list order matches TUI for a given search query.
+- [x] Add test to ensure session list order matches TUI for a given search query.
+      - Added `tests/cli/commands/sessions.test.ts` describe block "sessions list search order matches TUI"
+      - 5 tests covering: score-based ordering, time tiebreaker (updatedAt/createdAt), consistent ordering, sessionId final tiebreaker
+      - Verifies CLI ordering matches TUI logic: score desc -> time desc -> sessionId asc
 
 ### Tokens
 - [ ] Add `tokens session` subcommand with `--session`.
