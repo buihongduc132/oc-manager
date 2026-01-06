@@ -126,7 +126,11 @@
       - Updated `src/tui/app.tsx` to import `copyToClipboardSync` from `../lib/clipboard`
       - Removed inline `copyToClipboard` function from app.tsx
       - Removed `exec` import from `node:child_process` (no longer needed)
-- [ ] Update `manage_opencode_projects.py` to detect CLI subcommands and route.
+- [x] Update `manage_opencode_projects.py` to detect CLI subcommands and route.
+      - Refactored to shell out to `src/bin/opencode-manager.ts` which handles all routing
+      - Detects CLI subcommands (projects, sessions, chat, tokens) vs TUI mode
+      - Preserved --bun option for specifying custom bun path
+      - Removed argparse in favor of simple arg parsing (wrapper only needs --bun)
 - [ ] Add a minimal CLI smoke test (help output) to ensure CLI boots.
 
 ## Phase 2 - Output Formatting and Read-Only Commands
