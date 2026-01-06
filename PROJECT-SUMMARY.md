@@ -151,7 +151,7 @@ How To Run
 - 4: File operation error (backup/delete failure)
 
 ### TUI Keys
-- Global: `Tab`/`1`/`2` switch tabs, `/` search, `X` clear search, `R` reload, `Q` quit, `?` help
+- Global: `Tab`/`1`/`2` switch tabs, `/` search, `X` clear search, `R` reload, `Q` quit, `?/H` help
 - Projects: `Space` select, `A` select all, `M` toggle missing, `D` delete, `Enter` view sessions
 - Sessions: `Space` select, `S` sort, `D` delete, `Y` copy ID, `Shift+R` rename, `M` move, `P` copy, `C` clear filter
 
