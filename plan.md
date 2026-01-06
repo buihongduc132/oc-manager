@@ -602,7 +602,11 @@
       - JSON format: sessions list with envelope structure (ok/data/meta)
       - NDJSON format: tokens global with streaming line-by-line output
       - Added piping examples for jq processing, text extraction, export, and dry-run preview
-- [ ] Document clipboard support limitations (Linux/macOS).
+- [x] Document clipboard support limitations (Linux/macOS).
+      - Added "Clipboard Support" section to README.md under CLI documentation
+      - Documents platform support: macOS (pbcopy built-in), Linux (xclip required), Windows (not supported)
+      - Includes installation hint for Linux users (apt install xclip)
+      - Notes silent failure behavior in TUI vs error message in CLI
 - [ ] Update `PROJECT-SUMMARY.md` with new CLI/TUI architecture.
 - [ ] Add integration tests covering projects/sessions/tokens commands.
 - [ ] Add integration tests covering delete/rename/move/copy with dry-run.

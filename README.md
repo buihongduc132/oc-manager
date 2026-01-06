@@ -226,6 +226,18 @@ bunx opencode-manager projects delete --id prj_old --dry-run --format json
 | 3 | Resource not found (invalid project/session/message ID) |
 | 4 | File operation error (backup or delete failure) |
 
+#### Clipboard Support
+
+The `--clipboard` flag (or `Y` key in the TUI) copies content to the system clipboard. Platform support:
+
+| Platform | Tool Required | Notes |
+|----------|---------------|-------|
+| **macOS** | None | Uses built-in `pbcopy` |
+| **Linux** | `xclip` | Install via `apt install xclip` or equivalent |
+| **Windows** | — | Not currently supported |
+
+On Linux, if `xclip` is not installed, clipboard operations will fail silently in the TUI or show an error message in the CLI.
+
 ## Development Workflow
 1. Install dependencies with `bun install`.
 2. Run the TUI via `bun run tui` (pass storage flags after `--`).
