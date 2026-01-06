@@ -102,6 +102,9 @@ async function handleProjectsList(
       (p) => [p.projectId, p.worktree],
       { limit: globalOpts.limit }
     )
+  } else {
+    // Apply limit cap even without search (default 200)
+    projects = projects.slice(0, globalOpts.limit)
   }
 
   // Output the projects using the appropriate formatter

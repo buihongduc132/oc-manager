@@ -223,7 +223,9 @@
       - All tokens must match (AND logic), each token can match any field
       - Updated `handleProjectsList()` in `src/cli/commands/projects.ts` to use tokenizedSearch
       - Added 18 tests for tokenizedSearch in `tests/lib/search.test.ts`
-- [ ] Implement `--limit` cap (default 200) for projects list.
+- [x] Implement `--limit` cap (default 200) for projects list.
+      - Added `projects.slice(0, globalOpts.limit)` when no search query is provided
+      - Limit is already applied via `tokenizedSearch` options when search is active
 - [ ] Wire `projects list` output through `output.ts`.
 - [ ] Add JSON output test for `projects list`.
 - [ ] Add NDJSON output test for `projects list`.
