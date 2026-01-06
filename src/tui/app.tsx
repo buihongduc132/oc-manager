@@ -43,7 +43,7 @@ import {
   hydrateChatMessageParts,
   ChatSearchResult,
   searchSessionsChat,
-} from "./lib/opencode-data"
+} from "../lib/opencode-data"
 import { Searcher } from "fast-fuzzy"
 
 type TabKey = "projects" | "sessions"

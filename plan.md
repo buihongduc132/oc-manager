@@ -49,7 +49,10 @@
       - Created `src/tui/index.tsx` with `launchTUI()`, `parseArgs()`, `printUsage()`, and `bootstrap()` exports
       - Added `export` to `App` component in `src/opencode-tui.tsx` to allow import from tui module
       - Uses `.tsx` extension for JSX support
-- [ ] Move `src/opencode-tui.tsx` to `src/tui/app.tsx`.
+- [x] Move `src/opencode-tui.tsx` to `src/tui/app.tsx`.
+      - Moved file and updated imports in `src/tui/index.tsx`, `src/bin/opencode-manager.ts`
+      - Updated import path in app.tsx from `./lib/opencode-data` to `../lib/opencode-data`
+      - Updated `package.json` scripts to point to new location
 - [ ] Update all imports to use `src/tui/app.tsx` path.
 - [ ] Extract `parseArgs()` into `src/tui/args.ts` (or inline in `launchTUI`).
 - [ ] Update `launchTUI` to call `parseArgs()` and pass options to TUI.

@@ -5,16 +5,14 @@
  * This module serves as the public interface for launching the TUI,
  * allowing both direct execution and programmatic invocation from CLI.
  *
- * NOTE: This file currently imports App from the main TUI file.
- * A future refactor task will move `opencode-tui.tsx` to `tui/app.tsx`.
+ * Imports the App component from `./app.tsx` for rendering.
  */
 
 import { resolve } from "node:path"
 import { createRoot } from "@opentui/react"
 import { createCliRenderer } from "@opentui/core"
 
-// TODO: Replace with "./app" import after moving opencode-tui.tsx to tui/app.tsx
-import { App } from "../opencode-tui"
+import { App } from "./app"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
 
 export interface TUIOptions {
