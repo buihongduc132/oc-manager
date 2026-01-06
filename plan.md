@@ -113,16 +113,24 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Line 30 contains `.description("Launch the Terminal UI")`
 - [x] Note the `tui` subcommand description
   - **Finding**: The description is `"Launch the Terminal UI"`
-- [ ] Verify TUI help routing behavior
+- [x] Verify TUI help routing behavior
+  - **Finding**: Verified via Help Routing Audit below
 
 ### 1.8 Help Routing Audit
-- [ ] Run `bun run src/bin/opencode-manager.ts --help` and capture output
-- [ ] Confirm it shows TUI help (not Commander help)
-- [ ] Run `bun run src/bin/opencode-manager.ts projects --help` and capture output
-- [ ] Confirm it shows Commander CLI help
-- [ ] Run `bun run src/bin/opencode-manager.ts tui --help` and capture output
-- [ ] Confirm it shows TUI help
-- [ ] Document the dual help system behavior
+- [x] Run `bun run src/bin/opencode-manager.ts --help` and capture output
+  - **Finding**: Shows TUI help with key bindings (not Commander help)
+- [x] Confirm it shows TUI help (not Commander help)
+  - **Finding**: Confirmed - displays "OpenCode Metadata TUI" header with key bindings
+- [x] Run `bun run src/bin/opencode-manager.ts projects --help` and capture output
+  - **Finding**: Shows Commander CLI help with list/delete subcommands
+- [x] Confirm it shows Commander CLI help
+  - **Finding**: Confirmed - displays "Usage: opencode-manager projects [options] [command]"
+- [x] Run `bun run src/bin/opencode-manager.ts tui --help` and capture output
+  - **Finding**: Shows TUI help (same as root --help)
+- [x] Confirm it shows TUI help
+  - **Finding**: Confirmed - routes to TUI help, not Commander help for the tui subcommand
+- [x] Document the dual help system behavior
+  - **Finding**: Root/TUI subcommand → TUI help (key bindings); CLI subcommands (projects, sessions, chat, tokens) → Commander help
 
 ### 1.9 TUI Key Bindings Audit
 - [ ] Read `src/tui/args.ts` lines 18-64 (printUsage function)
@@ -574,11 +582,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 35 | 65% |
+| Phase 1 | 54 | 43 | 80% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **35** | **15.4%** |
+| **Total** | **227** | **43** | **18.9%** |
