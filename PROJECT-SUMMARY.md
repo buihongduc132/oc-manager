@@ -160,7 +160,7 @@ How To Run
 
 Packaging & Publish Checklist
 -----------------------------
-1. Install dependencies with `bun install` (Bun v1.1+ only).
+1. Install dependencies with `bun install` (Bun v1.3+ only).
 2. Type-check via `bun run typecheck` (runs `tsc --noEmit`).
 3. Update the version in `package.json` as needed.
 4. Run `npm publish` (package exposes the Bun-native `opencode-manager` bin with public access).

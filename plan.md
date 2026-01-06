@@ -367,7 +367,8 @@ When documentation and code conflict, resolve using this priority:
 - [x] Update Bun version from "1.1.0+" to "1.3.0+" (FIX PRE-EXISTING BUG)
 - [x] Verify installation commands match package.json scripts
   - **Finding**: All commands match - `bun run tui`, `bun run dev`, `bun run typecheck` correctly documented
-- [ ] Update any other version/requirement references
+- [x] Update any other version/requirement references
+  - **Finding**: Updated PROJECT-SUMMARY.md:163 from "Bun v1.1+ only" to "Bun v1.3+ only" (REQ-002 fix)
 
 ### 2.2 README.md Features Section
 - [ ] Verify feature list matches current CLI capabilities
@@ -732,10 +733,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 2 | 3% |
+| Phase 2 | 78 | 3 | 4% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **61** | **26.3%** |
+| **Total** | **232** | **62** | **26.7%** |
