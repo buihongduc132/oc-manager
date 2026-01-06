@@ -299,9 +299,20 @@ When documentation and code conflict, resolve using this priority:
   - **Note**: This is minor - fixtures document current layout; legacy is for backwards compatibility only
 
 ### 1.18 Legacy Wrapper Audit
-- [ ] Read `manage_opencode_projects.py` usage section
-- [ ] Check if README references the wrapper
-- [ ] Document if wrapper docs need updating
+- [x] Read `manage_opencode_projects.py` usage section
+  - **Finding**: Docstring (lines 2-14) documents usage:
+    - `manage_opencode_projects.py` → Launch TUI (default)
+    - `manage_opencode_projects.py projects list` → CLI: list projects
+    - `manage_opencode_projects.py sessions list` → CLI: list sessions
+    - `manage_opencode_projects.py -- --help` → Show TUI help
+  - **Finding**: Wrapper-only option is `--bun` to specify bun executable path
+  - **Finding**: All other args forwarded to TypeScript entrypoint
+- [x] Check if README references the wrapper
+  - **Finding**: README.md:93 shows example: `./manage_opencode_projects.py --root ~/.local/share/opencode -- --help`
+  - **Finding**: README.md:254 lists it in project structure as "Legacy Python launcher for backwards compatibility"
+- [x] Document if wrapper docs need updating
+  - **Finding**: Wrapper documentation is ACCURATE - no updates needed
+  - **Note**: `--root` works because it's forwarded to TypeScript entrypoint (not a wrapper option)
 
 ### 1.19 Create Gap Summary Document
 - [ ] Compile all discrepancies found into a single checklist
