@@ -215,12 +215,29 @@ When documentation and code conflict, resolve using this priority:
   - **DISCREPANCY-006**: README.md doesn't mention JSON auto-pretty-prints for TTY, compact for pipes
 
 ### 1.13 ID Resolution Behavior Audit
-- [ ] Review projects commands for prefix matching behavior
-- [ ] Review sessions commands for prefix matching behavior
-- [ ] Review chat commands for prefix/index matching behavior
-- [ ] Review tokens commands for exact ID requirement
-- [ ] Document: `chat show` accepts message ID prefix or 1-based index
-- [ ] Check if README documents ID resolution behavior
+- [x] Review projects commands for prefix matching behavior
+  - **Finding**: `projects delete` uses `resolveProjectId` with `allowPrefix: true` (src/cli/commands/projects.ts:164-167)
+  - **Finding**: Supports exact match first, then unique prefix matching; ambiguous prefixes throw error
+- [x] Review sessions commands for prefix matching behavior
+  - **Finding**: All session commands use `resolveSessionId` with `allowPrefix: true`:
+    - `sessions delete` (src/cli/commands/sessions.ts:295)
+    - `sessions rename` (src/cli/commands/sessions.ts:378)
+    - `sessions move` (src/cli/commands/sessions.ts:412)
+    - `sessions copy` (src/cli/commands/sessions.ts:468)
+  - **Finding**: `sessions move --to` and `sessions copy --to` use `resolveProjectId` with `allowPrefix: true` (lines 419, 475)
+- [x] Review chat commands for prefix/index matching behavior
+  - **Finding**: `chat list` and `chat show` use `resolveSessionId` with `allowPrefix: true` (src/cli/commands/chat.ts:157, 211)
+  - **Finding**: `chat show --message` supports exact match first, then prefix matching (src/cli/commands/chat.ts:229-250)
+  - **Finding**: `chat show --index` accepts 1-based index (src/cli/commands/chat.ts:252-261)
+- [x] Review tokens commands for exact ID requirement
+  - **Finding**: `tokens session` uses `findSessionById` - exact match only, NO prefix matching (src/cli/commands/tokens.ts:117)
+  - **Finding**: `tokens project` uses `findProjectById` - exact match only, NO prefix matching (src/cli/commands/tokens.ts:138)
+- [x] Document: `chat show` accepts message ID prefix or 1-based index
+  - **Finding**: Confirmed - either `--message <id|prefix>` or `--index <1-based>`, but not both
+- [x] Check if README documents ID resolution behavior
+  - **Finding**: README does NOT document ID resolution/prefix matching behavior
+  - **DISCREPANCY-007**: README missing documentation of prefix matching for projects/sessions/messages
+  - **DISCREPANCY-008**: README missing documentation that `tokens` commands require exact IDs (no prefix matching)
 
 ### 1.14 Clipboard Audit
 - [ ] Read `src/lib/clipboard.ts`
@@ -625,11 +642,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 54 | 62 | 115% |
+| Phase 1 | 54 | 68 | 126% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **227** | **62** | **27.3%** |
+| **Total** | **227** | **68** | **30.0%** |
