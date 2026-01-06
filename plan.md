@@ -371,7 +371,10 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Updated PROJECT-SUMMARY.md:163 from "Bun v1.1+ only" to "Bun v1.3+ only" (REQ-002 fix)
 
 ### 2.2 README.md Features Section
-- [ ] Verify feature list matches current CLI capabilities
+- [x] Verify feature list matches current CLI capabilities
+  - **Finding**: All 12 features in README.md:22-34 accurately match current CLI/TUI capabilities
+  - **Finding**: TUI features (fuzzy search, chat viewer, session operations) all implemented and documented
+  - **Finding**: CLI commands (projects, sessions, chat, tokens) all documented with correct flags
 - [ ] Add any missing features (e.g., chat search, token summaries)
 - [ ] Remove any deprecated features
 - [ ] Verify TUI feature descriptions match current behavior
