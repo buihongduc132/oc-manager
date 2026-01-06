@@ -375,9 +375,12 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: All 12 features in README.md:22-34 accurately match current CLI/TUI capabilities
   - **Finding**: TUI features (fuzzy search, chat viewer, session operations) all implemented and documented
   - **Finding**: CLI commands (projects, sessions, chat, tokens) all documented with correct flags
-- [ ] Add any missing features (e.g., chat search, token summaries)
-- [ ] Remove any deprecated features
-- [ ] Verify TUI feature descriptions match current behavior
+- [x] Add any missing features (e.g., chat search, token summaries)
+  - **Finding**: No missing features - all 12 features already documented (chat search at line 28, token counting at line 34)
+- [x] Remove any deprecated features
+  - **Finding**: No deprecated features found - all documented features are actively implemented
+- [x] Verify TUI feature descriptions match current behavior
+  - **Finding**: All TUI features (fuzzy search `/`, chat viewer `V`, chat search `F`, rename `Shift+R`, move `M`, copy `P`, help `?/H`) documented with correct key bindings
 
 ### 2.3 README.md CLI Global Options
 - [ ] Document `--root` option with default value
@@ -737,10 +740,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 3 | 4% |
+| Phase 2 | 78 | 6 | 8% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **63** | **27.2%** |
+| **Total** | **232** | **66** | **28.4%** |
