@@ -403,14 +403,22 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Already documented in README.md:119 - verified in Phase 1.2
 
 ### 2.4 README.md Projects Commands
-- [ ] Document `projects list` command
-- [ ] Document `projects list --missing-only` flag
-- [ ] Document `projects list --search` flag
-- [ ] Document `projects delete` command
-- [ ] Document `projects delete --id` flag
-- [ ] Document `projects delete --yes` flag
-- [ ] Document `projects delete --dry-run` flag
-- [ ] Document `projects delete --backup-dir` flag
+- [x] Document `projects list` command
+  - **Finding**: Already documented in README.md:126 with description and flags
+- [x] Document `projects list --missing-only` flag
+  - **Finding**: Already documented in README.md:126
+- [x] Document `projects list --search` flag
+  - **Finding**: Already documented in README.md:126
+- [x] Document `projects delete` command
+  - **Finding**: Already documented in README.md:127 with description and flags
+- [x] Document `projects delete --id` flag
+  - **Finding**: Already documented in README.md:127
+- [x] Document `projects delete --yes` flag
+  - **Finding**: Already documented in README.md:127
+- [x] Document `projects delete --dry-run` flag
+  - **Finding**: Already documented in README.md:127
+- [x] Document `projects delete --backup-dir` flag
+  - **Finding**: Already documented in README.md:127
 
 ### 2.5 README.md Sessions Commands
 - [ ] Document `sessions list` command
@@ -751,10 +759,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 22 | 28% |
+| Phase 2 | 78 | 30 | 38% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **84** | **36.2%** |
+| **Total** | **232** | **92** | **39.7%** |
