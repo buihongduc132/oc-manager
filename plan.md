@@ -63,7 +63,9 @@
       - Cleaned up unused imports in `app.tsx` (createRoot, createCliRenderer, resolve, DEFAULT_ROOT)
       - Updated `src/bin/opencode-manager.ts` to import from `index` instead of `app`
       - Updated package.json scripts to use `src/tui/index.tsx` as entry point
-- [ ] Update `launchTUI` to call `parseArgs()` and pass options to TUI.
+- [x] Update `launchTUI` to call `parseArgs()` and pass options to TUI.
+      - Already implemented: `bootstrap()` calls `parseArgs()` and passes result to `launchTUI(options)`
+      - `launchTUI()` accepts `Partial<TUIOptions>` and uses `options?.root ?? DEFAULT_ROOT`
 - [ ] Ensure `bun run tui` uses the new TUI entrypoint.
 - [ ] Update `src/bin/opencode-manager.ts` to route CLI vs TUI via dynamic imports.
 - [ ] Confirm TUI default path triggers when no subcommand is provided.
