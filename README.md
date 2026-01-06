@@ -133,7 +133,7 @@ opencode-manager
 │   └── copy      Copy session to another project (--session, --to)
 ├── chat
 │   ├── list      List messages in a session (--session, --include-parts)
-│   ├── show      Show a specific message (--session, --message or --index)
+│   ├── show      Show a specific message (--session, --message or --index, --clipboard)
 │   └── search    Search chat content across sessions (--query, --project)
 ├── tokens
 │   ├── session   Show token usage for a session (--session)

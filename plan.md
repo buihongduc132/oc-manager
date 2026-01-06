@@ -457,17 +457,28 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Already documented in README.md:133 - verified in Phase 1.4
 
 ### 2.6 README.md Chat Commands
-- [ ] Document `chat list` command
-- [ ] Document `chat list --session` flag
-- [ ] Document `chat list --include-parts` flag
-- [ ] Document `chat show` command
-- [ ] Document `chat show --session` flag
-- [ ] Document `chat show --message` flag
-- [ ] Document `chat show --index` flag
-- [ ] Document `chat show` clipboard behavior (uses global `--clipboard`)
-- [ ] Document `chat search` command
-- [ ] Document `chat search --query` flag
-- [ ] Document `chat search --project` flag
+- [x] Document `chat list` command
+  - **Finding**: Already documented in README.md:135 - verified in Phase 1.5
+- [x] Document `chat list --session` flag
+  - **Finding**: Already documented in README.md:135 - verified in Phase 1.5
+- [x] Document `chat list --include-parts` flag
+  - **Finding**: Already documented in README.md:135 - verified in Phase 1.5
+- [x] Document `chat show` command
+  - **Finding**: Already documented in README.md:136 - verified in Phase 1.5
+- [x] Document `chat show --session` flag
+  - **Finding**: Already documented in README.md:136 - verified in Phase 1.5
+- [x] Document `chat show --message` flag
+  - **Finding**: Already documented in README.md:136 - verified in Phase 1.5
+- [x] Document `chat show --index` flag
+  - **Finding**: Already documented in README.md:136 - verified in Phase 1.5
+- [x] Document `chat show` clipboard behavior (uses global `--clipboard`)
+  - **Fixed**: Added `--clipboard` to chat show flags in README.md:136
+- [x] Document `chat search` command
+  - **Finding**: Already documented in README.md:137 - verified in Phase 1.5
+- [x] Document `chat search --query` flag
+  - **Finding**: Already documented in README.md:137 - verified in Phase 1.5
+- [x] Document `chat search --project` flag
+  - **Finding**: Already documented in README.md:137 - verified in Phase 1.5
 
 ### 2.7 README.md Tokens Commands
 - [ ] Document `tokens session` command
@@ -776,10 +787,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 47 | 60% |
+| Phase 2 | 78 | 58 | 74% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **109** | **47.0%** |
+| **Total** | **232** | **120** | **51.7%** |
