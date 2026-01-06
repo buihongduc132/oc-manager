@@ -41,7 +41,7 @@ import {
   ChatSearchResult,
   searchSessionsChat,
 } from "../lib/opencode-data"
-import { Searcher } from "fast-fuzzy"
+import { createSearcher, type SearchCandidate } from "../lib/search"
 
 type TabKey = "projects" | "sessions"
 
@@ -563,26 +563,22 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
   const [currentTokenSummary, setCurrentTokenSummary] = useState<TokenSummary | null>(null)
   const [filteredTokenSummary, setFilteredTokenSummary] = useState<AggregateTokenSummary | null>(null)
 
-  // Build fuzzy search candidates
-  const searchCandidates = useMemo(() => {
+  // Build fuzzy search candidates using the shared search library
+  const searchCandidates = useMemo((): SearchCandidate<SessionRecord>[] => {
     return records.map((session) => ({
-      session,
+      item: session,
       searchText: [
         session.title || "",
         session.sessionId,
         session.directory || "",
         session.projectId,
       ].join(" ").replace(/\s+/g, " ").trim(),
-      updatedMs: (session.updatedAt ?? session.createdAt)?.getTime() ?? 0,
-      createdMs: session.createdAt?.getTime() ?? 0,
     }))
   }, [records])
 
-  // Build fuzzy searcher
+  // Build fuzzy searcher using the shared search library
   const searcher = useMemo(() => {
-    return new Searcher(searchCandidates, {
-      keySelector: (c) => c.searchText,
-    })
+    return createSearcher(searchCandidates)
   }, [searchCandidates])
 
   const visibleRecords = useMemo(() => {
@@ -602,11 +598,16 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
 
     // Sort by score (descending), then by timestamp (based on sortMode), then by sessionId
     const matched = results
-      .map((match) => ({
-        session: match.item.session,
-        score: match.score,
-        timeMs: sortMode === "created" ? match.item.createdMs : match.item.updatedMs,
-      }))
+      .map((match) => {
+        const session = match.item.item
+        const createdMs = session.createdAt?.getTime() ?? 0
+        const updatedMs = (session.updatedAt ?? session.createdAt)?.getTime() ?? 0
+        return {
+          session,
+          score: match.score,
+          timeMs: sortMode === "created" ? createdMs : updatedMs,
+        }
+      })
       .sort((a, b) => {
         // Primary: score descending
         if (b.score !== a.score) return b.score - a.score

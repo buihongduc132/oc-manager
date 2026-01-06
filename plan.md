@@ -195,7 +195,11 @@
       - Exports types: `SearchCandidate<T>`, `SearchResult<T>`, `FuzzySearchOptions`
       - Default limit of 200 results matches TUI behavior
       - `buildSearchText()` helper normalizes whitespace for search text construction
-- [ ] Update TUI search to call `src/lib/search.ts`.
+- [x] Update TUI search to call `src/lib/search.ts`.
+      - Updated SessionsPanel to import `createSearcher` and `SearchCandidate` from `../lib/search`
+      - Removed direct `fast-fuzzy` `Searcher` import in favor of shared library
+      - Refactored searchCandidates to use `SearchCandidate<SessionRecord>` type with `item` and `searchText`
+      - Updated visibleRecords memo to extract session from `match.item.item` and compute timestamps inline
 - [ ] Add tests for `src/lib/search.ts` basic ordering with fixtures.
 
 ### Projects list
