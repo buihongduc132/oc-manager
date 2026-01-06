@@ -183,7 +183,13 @@
       - Added `getOutputOptions()` to extract output options from global CLI options
       - Re-exports all formatter functions for convenience
       - Added tests in `tests/cli/output.test.ts` (31 tests)
-- [ ] Add shared error/exit helpers for codes 1-4 in CLI layer.
+- [x] Add shared error/exit helpers for codes 1-4 in CLI layer.
+      - Created `src/cli/errors.ts` with ExitCode constants (0-4)
+      - Added error classes: CLIError (base), UsageError (2), NotFoundError (3), FileOperationError (4)
+      - Added exit helpers: exitWithError, exitWithCLIError, exitUsageError, exitNotFound, exitFileError
+      - Added validation helpers: requireConfirmation, projectNotFound, sessionNotFound, messageNotFound
+      - Added withErrorHandling wrapper for async command handlers
+      - Added tests in `tests/cli/errors.test.ts` (35 tests)
 - [ ] Extract fuzzy search into `src/lib/search.ts` (use fast-fuzzy).
 - [ ] Update TUI search to call `src/lib/search.ts`.
 - [ ] Add tests for `src/lib/search.ts` basic ordering with fixtures.
