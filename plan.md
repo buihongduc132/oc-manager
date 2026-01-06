@@ -315,8 +315,49 @@ When documentation and code conflict, resolve using this priority:
   - **Note**: `--root` works because it's forwarded to TypeScript entrypoint (not a wrapper option)
 
 ### 1.19 Create Gap Summary Document
-- [ ] Compile all discrepancies found into a single checklist
-- [ ] Prioritize by user impact (requirements > commands > examples > details)
+- [x] Compile all discrepancies found into a single checklist
+- [x] Prioritize by user impact (requirements > commands > examples > details)
+
+---
+
+## Gap Summary (Discrepancies Found in Phase 1)
+
+### Priority 1: Requirements Mismatch (User Impact: HIGH)
+| ID | Location | Issue | Fix |
+|----|----------|-------|-----|
+| REQ-001 | README.md:61 | Says "Bun 1.1.0+" but package.json:9 requires ">=1.3.0" | Update to "1.3.0+" |
+| REQ-002 | PROJECT-SUMMARY.md:163 | Says "Bun v1.1+ only" but package.json:9 requires ">=1.3.0" | Update to "1.3.0+" |
+
+### Priority 2: Missing Documentation (User Impact: MEDIUM)
+| ID | Location | Issue | Fix |
+|----|----------|-------|-----|
+| DOC-001 | README.md TUI section | Missing `H` as help toggle alternative (only shows `?`) | Add `?/H` |
+| DOC-002 | README.md TUI section | Projects view missing `Esc` (clear selection) | Add key binding |
+| DOC-003 | README.md TUI section | Sessions view missing `A` (select all), `Enter` (details), `Esc` (clear) | Add key bindings |
+| DOC-004 | README.md | Missing ID prefix matching behavior docs | Add section |
+| DOC-005 | README.md | Missing note that `tokens` commands require exact IDs | Add to tokens section |
+| DOC-006 | README.md Output section | Missing `meta.limit` and `meta.truncated` fields | Add to JSON envelope docs |
+| DOC-007 | README.md Output section | Missing TTY auto-pretty-print behavior | Add note |
+
+### Priority 3: Help Text Gaps (User Impact: MEDIUM)
+| ID | Location | Issue | Fix |
+|----|----------|-------|-----|
+| HELP-001 | src/tui/args.ts:38-50 | Sessions `A` key (select all) implemented but undocumented | Add to printUsage() |
+| HELP-002 | PROJECT-SUMMARY.md:154 | Missing `H` as help alternative | Add `?/H` |
+| HELP-003 | PROJECT-SUMMARY.md:155 | Projects keys missing `Esc` | Add key binding |
+| HELP-004 | PROJECT-SUMMARY.md:156 | Sessions keys missing `A`, `V`, `F`, `Enter`, `Esc` | Add key bindings |
+
+### Priority 4: Minor Documentation Gaps (User Impact: LOW)
+| ID | Location | Issue | Fix |
+|----|----------|-------|-----|
+| MINOR-001 | tests/fixtures/README.md | Legacy fallback paths not documented | Add legacy paths section (optional) |
+
+### Summary Statistics
+- **Total Discrepancies**: 14
+- **Priority 1 (Requirements)**: 2
+- **Priority 2 (Missing Docs)**: 7
+- **Priority 3 (Help Text)**: 4
+- **Priority 4 (Minor)**: 1
 
 ---
 
@@ -689,11 +730,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase | Tasks | Completed | Progress |
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
-| Phase 1 | 57 | 80 | 140% |
+| Phase 1 | 59 | 59 | 100% |
 | Phase 2 | 78 | 0 | 0% |
 | Phase 2a | 28 | 0 | 0% |
 | Phase 2b | 7 | 0 | 0% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **230** | **80** | **34.8%** |
+| **Total** | **232** | **59** | **25.4%** |
