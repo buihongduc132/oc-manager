@@ -84,7 +84,11 @@
       - Added placeholder subcommands for projects, sessions, chat, tokens
       - Added `tui` subcommand to launch TUI from CLI
       - Exports `runCLI(args)`, `GlobalOptions`, `parseGlobalOptions()`
-- [ ] Wire CLI global options (`--root`, `--format`, `--limit`, `--sort`, `--yes`, `--dry-run`, `--quiet`, `--clipboard`, `--backup-dir`).
+- [x] Wire CLI global options (`--root`, `--format`, `--limit`, `--sort`, `--yes`, `--dry-run`, `--quiet`, `--clipboard`, `--backup-dir`).
+      - Added `collectOptions()` helper to traverse parent commands and merge options
+      - Updated all subcommand actions to use `function (this: Command)` pattern
+      - Each action calls `parseGlobalOptions(collectOptions(this))` to get typed options
+      - Updated TUI subcommand to use `launchTUI({ root })` directly instead of bootstrap
 - [ ] Create `src/cli/commands/projects.ts` with placeholder subcommands.
 - [ ] Create `src/cli/commands/sessions.ts` with placeholder subcommands.
 - [ ] Create `src/cli/commands/chat.ts` with placeholder subcommands.

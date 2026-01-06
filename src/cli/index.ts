@@ -6,9 +6,23 @@
  * subcommand handlers.
  */
 
-import { Command } from "commander"
+import { Command, type OptionValues } from "commander"
 import { resolve } from "node:path"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
+
+/**
+ * Collect all options from a command and its ancestors.
+ * Commander stores global options on the root program, not on subcommands.
+ */
+function collectOptions(cmd: Command): OptionValues {
+  const opts: OptionValues = {}
+  let current: Command | null = cmd
+  while (current) {
+    Object.assign(opts, current.opts())
+    current = current.parent
+  }
+  return opts
+}
 
 /**
  * Global CLI options available to all subcommands.
@@ -98,15 +112,19 @@ function createProgram(): Command {
   projects
     .command("list")
     .description("List projects")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("projects list: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   projects
     .command("delete")
     .description("Delete a project")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("projects delete: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   // Sessions subcommand group
@@ -117,36 +135,46 @@ function createProgram(): Command {
   sessions
     .command("list")
     .description("List sessions")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("sessions list: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   sessions
     .command("delete")
     .description("Delete a session")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("sessions delete: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   sessions
     .command("rename")
     .description("Rename a session")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("sessions rename: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   sessions
     .command("move")
     .description("Move a session to another project")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("sessions move: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   sessions
     .command("copy")
     .description("Copy a session to another project")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("sessions copy: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   // Chat subcommand group
@@ -157,22 +185,28 @@ function createProgram(): Command {
   chat
     .command("list")
     .description("List messages in a session")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("chat list: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   chat
     .command("show")
     .description("Show a specific message")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("chat show: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   chat
     .command("search")
     .description("Search chat content across sessions")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("chat search: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   // Tokens subcommand group
@@ -183,32 +217,38 @@ function createProgram(): Command {
   tokens
     .command("session")
     .description("Show token usage for a session")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("tokens session: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   tokens
     .command("project")
     .description("Show token usage for a project")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("tokens project: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   tokens
     .command("global")
     .description("Show global token usage")
-    .action(() => {
+    .action(function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
       console.log("tokens global: not yet implemented")
+      console.log("Global options:", globalOpts)
     })
 
   // TUI subcommand to explicitly launch TUI from CLI
   program
     .command("tui")
     .description("Launch the Terminal UI")
-    .action(async () => {
-      const { bootstrap } = await import("../tui/index")
-      const opts = program.opts()
-      await bootstrap(["--root", opts.root])
+    .action(async function (this: Command) {
+      const globalOpts = parseGlobalOptions(collectOptions(this))
+      const { launchTUI } = await import("../tui/index")
+      await launchTUI({ root: globalOpts.root })
     })
 
   return program
