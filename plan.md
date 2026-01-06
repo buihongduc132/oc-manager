@@ -633,7 +633,9 @@
       - Tests all formats and error message content
 - [x] Run `bun test` and ensure all tests pass.
       - All 655 tests pass across 15 test files
-- [ ] Verify `bunx opencode-manager` still opens TUI by default.
+- [x] Verify `bunx opencode-manager` still opens TUI by default.
+      - Verified: Running `bun src/bin/opencode-manager.ts` with no args launches TUI
+      - TUI renders correctly with Tabs, Projects panel, Sessions panel, and keybinding help
 - [ ] Verify `bunx opencode-manager tui --help` shows TUI help text.
 - [ ] Verify `manage_opencode_projects.py` routes CLI subcommands.
 - [ ] Review open questions (completion, templates, json-lines alias).
