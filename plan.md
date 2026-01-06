@@ -536,8 +536,10 @@ When documentation and code conflict, resolve using this priority:
 ## Phase 2a: Update CLI Help Text
 
 ### 2a.1 Root Program Description
-- [ ] Review `src/cli/index.ts:79` description
-- [ ] Decide: update for future-proofing or leave as-is (per DECISION-003)
+- [x] Review `src/cli/index.ts:79` description
+  - **Finding**: Description is `"CLI for managing OpenCode metadata stores"` - accurate and appropriate
+- [x] Decide: update for future-proofing or leave as-is (per DECISION-003)
+  - **Decision**: KEEP AS-IS for future-proofing. Description is accurate even if currently not shown to users due to TUI help routing. No code change needed.
 
 ### 2a.2 Projects Command Descriptions
 - [ ] Review `src/cli/commands/projects.ts:71` - "Manage OpenCode projects"
@@ -750,9 +752,9 @@ When documentation and code conflict, resolve using this priority:
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
 | Phase 2 | 78 | 22 | 28% |
-| Phase 2a | 28 | 0 | 0% |
+| Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **82** | **35.3%** |
+| **Total** | **232** | **84** | **36.2%** |
