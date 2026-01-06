@@ -78,7 +78,7 @@
       - Verified: `bun src/bin/opencode-manager.ts` (no args) launches TUI
       - Verified: `bun src/bin/opencode-manager.ts --help` shows TUI help
       - Verified: `bun src/bin/opencode-manager.ts --root /tmp/test` launches TUI with custom root
-- [ ] Add `commander@^12.0.0` to `package.json` dependencies.
+- [x] Add `commander@^12.0.0` to `package.json` dependencies.
 - [ ] Create `src/cli/index.ts` with Commander program and `runCLI(args)`.
 - [ ] Wire CLI global options (`--root`, `--format`, `--limit`, `--sort`, `--yes`, `--dry-run`, `--quiet`, `--clipboard`, `--backup-dir`).
 - [ ] Create `src/cli/commands/projects.ts` with placeholder subcommands.
