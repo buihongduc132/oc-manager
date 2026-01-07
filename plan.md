@@ -833,10 +833,14 @@ When documentation and code conflict, resolve using this priority:
   - **Verified**: package.json:9 specifies `"bun": ">=1.3.0"`
 
 ### 5b: Help Output Validation - Root
-- [ ] Run `bun run src/bin/opencode-manager.ts --help`
-- [ ] Verify shows TUI help (key bindings)
-- [ ] Run `bun run src/bin/opencode-manager.ts -h`
-- [ ] Verify shows same TUI help
+- [x] Run `bun run src/bin/opencode-manager.ts --help`
+  - **Verified**: Shows TUI help with all key bindings (Global, Projects, Sessions, Chat search, Chat viewer sections)
+- [x] Verify shows TUI help (key bindings)
+  - **Verified**: Output starts with "OpenCode Metadata TUI" and shows key bindings, not Commander CLI help
+- [x] Run `bun run src/bin/opencode-manager.ts -h`
+  - **Verified**: Produces identical TUI help output as `--help`
+- [x] Verify shows same TUI help
+  - **Verified**: Both `-h` and `--help` route to TUI help display
 
 ### 5b: Help Output Validation - Projects
 - [ ] Run `bun run src/bin/opencode-manager.ts projects --help`
@@ -922,9 +926,10 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
 | Phase 4 | 6 | 4 | 67% |
-| Phase 5 | 40 | 6 | 15% |
-| **Total** | **250** | **211** | **84%** |
+| Phase 5 | 40 | 10 | 25% |
+| **Total** | **250** | **215** | **86%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
+*Note: Phase 5b Root help validation (4 tasks) verified complete on 2026-01-06*
 *Note: Phase 2a.7 (10 tasks) verified complete on 2026-01-06 - all options are global, defined once in src/cli/index.ts*
