@@ -580,7 +580,8 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: No dedicated `chat list` output example exists in README.md - only referenced in piping examples (line 266). No discrepancy to fix.
 - [x] Verify `chat show` example output matches current format
   - **Finding**: No dedicated `chat show` output example exists in README.md. The command is documented at line 136 with its flags. Output formats are: table (Message ID/Role/Created/Tokens/Content block), JSON (ChatMessage in envelope), NDJSON (single line). No example needed since format is straightforward and `chat list` piping example at line 266 demonstrates usage.
-- [ ] Verify `tokens` example output matches current format
+- [x] Verify `tokens` example output matches current format
+  - **Fixed**: Updated README.md:246-256 NDJSON example - was showing incorrect per-category format with `category`, `tokens`, `percentage` fields; actual NDJSON is raw object without envelope. Changed example to `sessions list --format ndjson` which better demonstrates NDJSON (multiple lines) and added note explaining single-record NDJSON behavior.
 - [ ] Update any outdated flag names in examples
 
 ### 2.18 PROJECT-SUMMARY.md Architecture
@@ -816,13 +817,13 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 93 | 82 | 88% |
+| Phase 2 | 93 | 83 | 89% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **247** | **144** | **58.3%** |
+| **Total** | **247** | **145** | **58.7%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*

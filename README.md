@@ -243,15 +243,13 @@ The `meta` object contains:
 **NDJSON** — Newline-delimited JSON for streaming/piping:
 
 ```bash
-$ bunx opencode-manager tokens global --format ndjson
+$ bunx opencode-manager sessions list --format ndjson --limit 2
 
-{"category":"input","tokens":125000,"percentage":"45.2%"}
-{"category":"output","tokens":98000,"percentage":"35.4%"}
-{"category":"reasoning","tokens":32000,"percentage":"11.6%"}
-{"category":"cacheRead","tokens":15000,"percentage":"5.4%"}
-{"category":"cacheWrite","tokens":6500,"percentage":"2.4%"}
-{"category":"total","tokens":276500,"percentage":"100.0%"}
+{"index":1,"sessionId":"ses_abc123","projectId":"prj_xyz789","title":"Feature implementation","createdAt":"2026-01-06T10:30:00.000Z"}
+{"index":2,"sessionId":"ses_def456","projectId":"prj_xyz789","title":"Bug fix session","createdAt":"2026-01-06T11:15:00.000Z"}
 ```
+
+Each line is a complete JSON object, ideal for piping to `jq` or line-by-line processing. For single-record commands like `tokens global`, NDJSON outputs one line with the same structure as the JSON `data` field.
 
 **Piping examples:**
 
