@@ -350,14 +350,14 @@ When documentation and code conflict, resolve using this priority:
 ### Priority 4: Minor Documentation Gaps (User Impact: LOW)
 | ID | Location | Issue | Fix |
 |----|----------|-------|-----|
-| MINOR-001 | tests/fixtures/README.md | Legacy fallback paths not documented | Add legacy paths section (optional) |
+| ~~MINOR-001~~ | ~~tests/fixtures/README.md~~ | ~~Legacy fallback paths not documented~~ | ~~Add legacy paths section~~ ✅ DONE |
 
 ### Summary Statistics
-- **Total Discrepancies**: 14 (13 fixed)
+- **Total Discrepancies**: 14 (14 fixed)
 - **Priority 1 (Requirements)**: 2 (2 fixed)
 - **Priority 2 (Missing Docs)**: 7 (7 fixed)
 - **Priority 3 (Help Text)**: 4 (4 fixed)
-- **Priority 4 (Minor)**: 1 (0 fixed)
+- **Priority 4 (Minor)**: 1 (1 fixed)
 
 ---
 
@@ -736,13 +736,22 @@ When documentation and code conflict, resolve using this priority:
 ## Phase 3: Update Supplemental Documentation
 
 ### 3.1 tests/fixtures/README.md
-- [ ] Update project schema documentation
-- [ ] Update session schema documentation
-- [ ] Update message schema documentation
-- [ ] Update part schema documentation
-- [ ] Add token fields documentation
-- [ ] Document legacy storage paths
-- [ ] Verify example JSON matches schema
+- [x] Update project schema documentation
+  - **Finding**: Already accurate and complete (verified in Phase 1.17)
+- [x] Update session schema documentation
+  - **Finding**: Already accurate and complete (verified in Phase 1.17)
+- [x] Update message schema documentation
+  - **Finding**: Already accurate and complete (verified in Phase 1.17)
+- [x] Update part schema documentation
+  - **Finding**: Already accurate and complete (verified in Phase 1.17)
+- [x] Add token fields documentation
+  - **Finding**: Already documented (lines 80-88) with input/output/reasoning/cache fields
+- [x] Document legacy storage paths
+  - **Fixed**: Added "Legacy Storage Paths" section documenting:
+    - `storage/session/message/<sessionId>/<messageId>.json`
+    - `storage/session/part/<messageId>/<partId>.json`
+- [x] Verify example JSON matches schema
+  - **Finding**: All example JSON in fixture README matches opencode-data.ts schemas
 
 ### 3.2 plan.md Status
 - [ ] Add header marking this as active backlog
@@ -880,10 +889,10 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2 | 93 | 93 | 100% |
 | Phase 2a | 31 | 31 | 100% |
 | Phase 2b | 7 | 7 | 100% |
-| Phase 3 | 11 | 0 | 0% |
+| Phase 3 | 11 | 7 | 64% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **250** | **190** | **76.0%** |
+| **Total** | **250** | **197** | **78.8%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*

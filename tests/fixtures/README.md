@@ -24,6 +24,17 @@ tests/fixtures/
 └── README.md
 ```
 
+### Legacy Storage Paths
+
+For backwards compatibility, the codebase also supports legacy storage layouts from older OpenCode versions:
+
+```
+storage/session/message/<sessionId>/<messageId>.json   # Legacy message path
+storage/session/part/<messageId>/<partId>.json         # Legacy part path
+```
+
+The loader checks primary paths first, then falls back to legacy paths. Test fixtures use the current (primary) layout.
+
 ## Project File Schema
 
 ```json
