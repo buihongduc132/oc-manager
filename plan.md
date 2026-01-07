@@ -1000,7 +1000,13 @@ When documentation and code conflict, resolve using this priority:
     - `reason` field with values `missing`, `parse_error`, `no_messages` at lines 305-309
     - `AggregateTokenSummary` with `total`, `knownOnly`, `unknownSessions` at lines 310-331
   - **Matches**: src/lib/opencode-data.ts:20-28 exactly
-- [ ] CLI exit codes match `src/cli/errors.ts`
+- [x] CLI exit codes match `src/cli/errors.ts`
+  - **Verified 2026-01-06**: All 5 exit codes match:
+    - `0` (SUCCESS): "Success" matches README.md:339
+    - `1` (ERROR): "General error" matches README.md:340
+    - `2` (USAGE_ERROR): "Usage error" matches README.md:341
+    - `3` (NOT_FOUND): "Resource not found" matches README.md:342
+    - `4` (FILE_ERROR): "File operation error" matches README.md:343
 - [ ] CLI version matches `package.json`
 - [ ] Requirements match `package.json`
 - [ ] Screenshots match current UI
