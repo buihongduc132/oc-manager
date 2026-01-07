@@ -901,8 +901,10 @@ When documentation and code conflict, resolve using this priority:
   - **Verified**: Both documented options displayed correctly, matches README.md:137
 
 ### 5b: Help Output Validation - Tokens
-- [ ] Run `bun run src/bin/opencode-manager.ts tokens --help`
-- [ ] Verify shows Commander help with all subcommands
+- [x] Run `bun run src/bin/opencode-manager.ts tokens --help`
+  - **Verified**: Shows Commander help with session, project, global subcommands
+- [x] Verify shows Commander help with all subcommands
+  - **Verified**: All 3 subcommands displayed (session, project, global) - matches README.md:138-141
 - [ ] Run `bun run src/bin/opencode-manager.ts tokens session --help`
 - [ ] Verify shows session options
 - [ ] Run `bun run src/bin/opencode-manager.ts tokens project --help`
@@ -952,8 +954,8 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
 | Phase 4 | 6 | 4 | 67% |
-| Phase 5 | 40 | 36 | 90% |
-| **Total** | **250** | **241** | **96%** |
+| Phase 5 | 40 | 38 | 95% |
+| **Total** | **250** | **243** | **97%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
@@ -962,3 +964,4 @@ When documentation and code conflict, resolve using this priority:
 *Note: Phase 5b Projects help validation (6 tasks) verified complete on 2026-01-06*
 *Note: Phase 5b Sessions help validation (10 tasks) verified complete on 2026-01-06 - all subcommands verified*
 *Note: Phase 5b Chat help validation (8 tasks) verified complete on 2026-01-06 - all subcommands verified*
+*Note: Phase 5b Tokens help validation (2 tasks) verified complete on 2026-01-06 - tokens --help shows all 3 subcommands*
