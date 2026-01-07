@@ -701,12 +701,21 @@ When documentation and code conflict, resolve using this priority:
 ## Phase 2b: Update TUI Help Text
 
 ### 2b.1 TUI Help Output
-- [ ] Read `src/tui/args.ts:printUsage()` function
-- [ ] Verify all key bindings listed match actual behavior
+- [x] Read `src/tui/args.ts:printUsage()` function
+  - **Finding**: printUsage() at lines 18-65 documents all TUI key bindings in 5 sections
+- [x] Verify all key bindings listed match actual behavior
+  - **Finding**: All 37 documented key bindings verified against app.tsx implementations:
+    - Global keys (lines 1731-1918): Tab, 1, 2, /, X, ?/H, R, Q, F all implemented
+    - Projects keys (lines 415-464): Space, A, M, D, Enter, Esc all implemented
+    - Sessions keys (lines 838-993): Space, A, S, V, F, Shift+R, M, P, Y, C, D, Enter, Esc all implemented
+    - Chat search (lines 1811-1848): Type, Enter, Up/Down, Esc all implemented
+    - Chat viewer (lines 1768-1808): Esc, Up/Down, PgUp/PgDn, Home/End, Y all implemented
 - [x] Add any missing key bindings
   - **Fixed**: Added `A` key (select all) to Sessions view in `src/tui/args.ts:40` (HELP-001)
-- [ ] Remove any outdated key bindings
-- [ ] Verify formatting and spacing
+- [x] Remove any outdated key bindings
+  - **Finding**: No outdated key bindings found - all documented keys are implemented
+- [x] Verify formatting and spacing
+  - **Finding**: Consistent formatting - clear section headers, logical grouping, aligned indentation
 
 ### 2b.2 TUI In-App Help
 - [ ] Locate help overlay in `src/tui/app.tsx`
@@ -867,11 +876,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase 1 | 59 | 59 | 100% |
 | Phase 2 | 93 | 93 | 100% |
 | Phase 2a | 31 | 31 | 100% |
-| Phase 2b | 7 | 1 | 14% |
+| Phase 2b | 7 | 5 | 71% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **250** | **184** | **73.6%** |
+| **Total** | **250** | **188** | **75.2%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
