@@ -967,7 +967,10 @@ When documentation and code conflict, resolve using this priority:
     - `./manage_opencode_projects.py` (README.md:93,431) ✓ - Python wrapper works, shows TUI help
     - `opencode-gen.sh` (README.md:432) ✓ - script exists and is executable
     - `bun run src/bin/opencode-manager.ts --version` ✓ - outputs 0.3.1
-- [ ] Search README for all version numbers and verify accuracy
+- [x] Search README for all version numbers and verify accuracy
+  - **Finding**: README.md:61 said "developed/tested on 1.2.x" but package.json:7 specifies `bun@1.3.2`
+  - **Fixed**: Updated to "developed/tested on 1.3.x"
+  - **Verified**: All other version numbers are example data (session versions "1.1.4" in JSON examples) - no issues
 - [ ] Verify help routing is documented correctly
 
 ### 5c: Final Checklist
