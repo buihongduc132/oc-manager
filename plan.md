@@ -540,22 +540,34 @@ When documentation and code conflict, resolve using this priority:
 - [x] Document dry-run behavior
 
 ### 2.14 README.md Clipboard
-- [ ] Document `pbcopy` requirement on macOS
-- [ ] Document `xclip` requirement on Linux
-- [ ] Document no Windows support
+- [x] Document `pbcopy` requirement on macOS
+  - **Finding**: Already documented in README.md:376 - "Uses built-in `pbcopy`"
+- [x] Document `xclip` requirement on Linux
+  - **Finding**: Already documented in README.md:377 - "Install via `apt install xclip`"
+- [x] Document no Windows support
+  - **Finding**: Already documented in README.md:378 - "Not currently supported"
 
 ### 2.15 README.md Troubleshooting
-- [ ] Verify tmux note is accurate
-- [ ] Verify clipboard behavior notes are accurate
-- [ ] Add any new known issues
+- [x] Verify tmux note is accurate
+  - **Finding**: README.md:441 tmux note is general guidance for sandboxed environments - accurate
+- [x] Verify clipboard behavior notes are accurate
+  - **Finding**: README.md:380 states "fail silently in TUI or show error in CLI" - matches src/lib/clipboard.ts behavior
+- [x] Add any new known issues
+  - **Finding**: No TODO/FIXME/HACK comments in codebase; no new known issues to add
 
 ### 2.16 README.md TUI Key Bindings
-- [ ] Update global key bindings section
-- [ ] Update Projects view key bindings
-- [ ] Update Sessions view key bindings
-- [ ] Update Chat search key bindings
-- [ ] Update Chat viewer key bindings
-- [ ] Document confirmation workflow keys
+- [x] Update global key bindings section
+  - **Finding**: README.md:97 includes `?/H` for help - already up to date
+- [x] Update Projects view key bindings
+  - **Finding**: README.md:98 includes `A` select all, `Esc` clear selection - already up to date
+- [x] Update Sessions view key bindings
+  - **Finding**: README.md:99 includes `A`, `Enter`, `Esc` - already up to date
+- [x] Update Chat search key bindings
+  - **Finding**: README.md:100 matches args.ts:54-57 - already up to date
+- [x] Update Chat viewer key bindings
+  - **Finding**: README.md:101 matches args.ts:58-62 - already up to date
+- [x] Document confirmation workflow keys
+  - **Finding**: Confirmation is handled by --yes flag (CLI) and modal dialogs (TUI) - no separate key bindings needed
 
 ### 2.17 README.md Examples
 - [ ] Verify `projects list` example output matches current format
@@ -798,10 +810,12 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 82 | 100% |
+| Phase 2 | 93 | 81 | 87% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **144** | **62.1%** |
+| **Total** | **247** | **143** | **57.9%** |
+
+*Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
