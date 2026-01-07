@@ -793,8 +793,11 @@ When documentation and code conflict, resolve using this priority:
 ## Phase 4: External Reference Checks
 
 ### 4.1 OpenTUI Reference
-- [ ] Verify OpenTUI GitHub URL is correct
-- [ ] Verify usage description matches actual dependency usage
+- [x] Verify OpenTUI GitHub URL is correct
+  - **Finding**: URL was `https://github.com/open-tui/opentui` which returns 404
+  - **Fixed**: Updated to `https://github.com/sst/opentui` (per npm package @opentui/react)
+- [x] Verify usage description matches actual dependency usage
+  - **Finding**: README says "renders with `@opentui/react`" - accurate per npm package description
 
 ### 4.2 Bun Reference
 - [ ] Verify Bun GitHub URL is correct
@@ -908,9 +911,9 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2a | 31 | 31 | 100% |
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
-| Phase 4 | 6 | 0 | 0% |
+| Phase 4 | 6 | 2 | 33% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **250** | **201** | **80.4%** |
+| **Total** | **250** | **203** | **81.2%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
