@@ -994,7 +994,12 @@ When documentation and code conflict, resolve using this priority:
     - PartType schemas (lines 34-43) match fixture schema (lines 110-146)
     - TokenBreakdown (lines 11-18) match fixture schema (lines 91-99)
     - Legacy paths (opencode-data.ts:617,794) documented in fixture README (lines 27-36)
-- [ ] Token summary docs include `kind`/`reason`/`unknownSessions`
+- [x] Token summary docs include `kind`/`reason`/`unknownSessions`
+  - **Verified**: README.md:270-331 accurately documents:
+    - `TokenSummary` with `kind` discriminator ("known"/"unknown") at lines 274-303
+    - `reason` field with values `missing`, `parse_error`, `no_messages` at lines 305-309
+    - `AggregateTokenSummary` with `total`, `knownOnly`, `unknownSessions` at lines 310-331
+  - **Matches**: src/lib/opencode-data.ts:20-28 exactly
 - [ ] CLI exit codes match `src/cli/errors.ts`
 - [ ] CLI version matches `package.json`
 - [ ] Requirements match `package.json`
