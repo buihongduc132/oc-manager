@@ -207,24 +207,29 @@ $ bunx opencode-manager sessions list --project prj_abc123 --format json --limit
   "ok": true,
   "data": [
     {
+      "index": 1,
       "sessionId": "sess_xyz789",
       "projectId": "prj_abc123",
+      "directory": "/home/user/repos/my-app",
       "title": "Refactor auth module",
+      "version": "1.1.4",
       "updatedAt": "2026-01-05T14:32:00.000Z",
       "createdAt": "2026-01-03T09:15:00.000Z"
     },
     {
+      "index": 2,
       "sessionId": "sess_uvw456",
       "projectId": "prj_abc123",
+      "directory": "/home/user/repos/my-app",
       "title": "Add unit tests",
+      "version": "1.1.4",
       "updatedAt": "2026-01-04T16:45:00.000Z",
       "createdAt": "2026-01-02T11:20:00.000Z"
     }
   ],
   "meta": {
     "count": 2,
-    "limit": 2,
-    "truncated": true
+    "limit": 2
   }
 }
 ```
@@ -234,7 +239,6 @@ JSON output auto-detects your terminal: pretty-printed with indentation when out
 The `meta` object contains:
 - `count` — Number of items in the `data` array
 - `limit` — The limit that was applied (if `--limit` was specified)
-- `truncated` — `true` if results were truncated due to the limit
 
 **NDJSON** — Newline-delimited JSON for streaming/piping:
 

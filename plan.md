@@ -572,7 +572,10 @@ When documentation and code conflict, resolve using this priority:
 ### 2.17 README.md Examples
 - [x] Verify `projects list` example output matches current format
   - **Fixed**: Updated README.md:194-198 to show correct column order: `# | State | Path | Project ID | Created`
-- [ ] Verify `sessions list` example output matches current format
+- [x] Verify `sessions list` example output matches current format
+  - **Fixed**: Updated README.md:206-233 JSON example to include actual fields (`index`, `directory`, `version`, `filePath` omitted for brevity)
+  - **Fixed**: Removed `truncated` from meta object (not implemented in code)
+  - **Fixed**: Removed `truncated` documentation from meta field list (README.md:234-236)
 - [ ] Verify `chat list` example output matches current format
 - [ ] Verify `chat show` example output matches current format
 - [ ] Verify `tokens` example output matches current format
@@ -811,12 +814,13 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 93 | 81 | 87% |
+| Phase 2 | 93 | 82 | 88% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **247** | **143** | **57.9%** |
+| **Total** | **247** | **144** | **58.3%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
+*Note: Phase 2.17 sessions list example verified 2026-01-06*
