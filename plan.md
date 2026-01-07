@@ -986,7 +986,14 @@ When documentation and code conflict, resolve using this priority:
 - [x] TUI key bindings match `src/tui/args.ts`
   - **Verified 2026-01-06**: All key bindings in README.md:96-101 match src/tui/args.ts:22-64 exactly
   - **Verified**: PROJECT-SUMMARY.md:155-158 has core key bindings (intentionally brief, omits Chat sections)
-- [ ] Data model matches `src/lib/opencode-data.ts`
+- [x] Data model matches `src/lib/opencode-data.ts`
+  - **Verified 2026-01-06**: tests/fixtures/README.md accurately documents all schemas:
+    - ProjectRecord fields (lines 63-72) match fixture schema (lines 38-54)
+    - SessionRecord fields (lines 74-84) match fixture schema (lines 56-78)
+    - ChatMessage/RawMessagePayload (lines 47-61, 867-874) match fixture schema (lines 80-108)
+    - PartType schemas (lines 34-43) match fixture schema (lines 110-146)
+    - TokenBreakdown (lines 11-18) match fixture schema (lines 91-99)
+    - Legacy paths (opencode-data.ts:617,794) documented in fixture README (lines 27-36)
 - [ ] Token summary docs include `kind`/`reason`/`unknownSessions`
 - [ ] CLI exit codes match `src/cli/errors.ts`
 - [ ] CLI version matches `package.json`
