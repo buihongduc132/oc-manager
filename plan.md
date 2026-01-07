@@ -843,12 +843,18 @@ When documentation and code conflict, resolve using this priority:
   - **Verified**: Both `-h` and `--help` route to TUI help display
 
 ### 5b: Help Output Validation - Projects
-- [ ] Run `bun run src/bin/opencode-manager.ts projects --help`
-- [ ] Verify shows Commander help with list/delete subcommands
-- [ ] Run `bun run src/bin/opencode-manager.ts projects list --help`
-- [ ] Verify shows list options
-- [ ] Run `bun run src/bin/opencode-manager.ts projects delete --help`
-- [ ] Verify shows delete options
+- [x] Run `bun run src/bin/opencode-manager.ts projects --help`
+  - **Verified**: Shows Commander help with `list` and `delete` subcommands
+- [x] Verify shows Commander help with list/delete subcommands
+  - **Verified**: Output shows "Commands: list [options] List projects, delete [options] Delete a project's metadata file"
+- [x] Run `bun run src/bin/opencode-manager.ts projects list --help`
+  - **Verified**: Shows `--missing-only` and `-s, --search <query>` options
+- [x] Verify shows list options
+  - **Verified**: Both documented options displayed correctly
+- [x] Run `bun run src/bin/opencode-manager.ts projects delete --help`
+  - **Verified**: Shows `--id`, `--yes`, `--dry-run`, `--backup-dir` options
+- [x] Verify shows delete options
+  - **Verified**: All four documented options displayed correctly
 
 ### 5b: Help Output Validation - Sessions
 - [ ] Run `bun run src/bin/opencode-manager.ts sessions --help`
@@ -926,10 +932,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
 | Phase 4 | 6 | 4 | 67% |
-| Phase 5 | 40 | 10 | 25% |
-| **Total** | **250** | **215** | **86%** |
+| Phase 5 | 40 | 16 | 40% |
+| **Total** | **250** | **221** | **88%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
 *Note: Phase 5b Root help validation (4 tasks) verified complete on 2026-01-06*
 *Note: Phase 2a.7 (10 tasks) verified complete on 2026-01-06 - all options are global, defined once in src/cli/index.ts*
+*Note: Phase 5b Projects help validation (6 tasks) verified complete on 2026-01-06*
