@@ -666,16 +666,35 @@ When documentation and code conflict, resolve using this priority:
   - **Fixed**: Updated to "Launch the Terminal UI for interactive project management" - more informative while staying concise
 
 ### 2a.7 Option Help Strings
-- [ ] Review all `--root` option descriptions across commands
-- [ ] Review all `--format` option descriptions
-- [ ] Review all `--limit` option descriptions
-- [ ] Review all `--sort` option descriptions
-- [ ] Review all `--yes` option descriptions
-- [ ] Review all `--dry-run` option descriptions
-- [ ] Review all `--quiet` option descriptions
-- [ ] Review all `--clipboard` option descriptions
-- [ ] Review all `--backup-dir` option descriptions
-- [ ] Ensure consistency across all commands
+- [x] Review all `--root` option descriptions across commands
+  - **Finding**: Global option defined once at `src/cli/index.ts:82-86` - "Root path to OpenCode metadata store"
+  - **Finding**: README.md:111 matches exactly
+- [x] Review all `--format` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:87-91` - "Output format: json, ndjson, or table"
+  - **Finding**: README.md:112 matches (with markdown formatting)
+- [x] Review all `--limit` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:92-96` - "Maximum number of records to return"
+  - **Finding**: README.md:113 matches exactly
+- [x] Review all `--sort` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:97-101` - "Sort order: updated or created"
+  - **Finding**: README.md:114 matches (with markdown formatting)
+- [x] Review all `--yes` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:102` - "Skip confirmation prompts"
+  - **Finding**: README.md:115 adds "for destructive operations" (acceptable enhancement)
+- [x] Review all `--dry-run` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:103-107` - "Show planned changes without executing"
+  - **Finding**: README.md:116 says "Preview changes without executing" (equivalent)
+- [x] Review all `--quiet` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:108` - "Suppress non-essential output"
+  - **Finding**: README.md:117 matches exactly
+- [x] Review all `--clipboard` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:109` - "Copy output to clipboard"
+  - **Finding**: README.md:118 matches exactly
+- [x] Review all `--backup-dir` option descriptions
+  - **Finding**: Global option at `src/cli/index.ts:110` - "Directory for backup copies before deletion"
+  - **Finding**: README.md:119 matches exactly
+- [x] Ensure consistency across all commands
+  - **Finding**: All 9 options are GLOBAL (defined once in src/cli/index.ts:82-110), inherited by all subcommands - no per-command definitions exist; all descriptions consistent with README
 
 ---
 
@@ -847,12 +866,13 @@ When documentation and code conflict, resolve using this priority:
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
 | Phase 2 | 93 | 93 | 100% |
-| Phase 2a | 28 | 21 | 75% |
+| Phase 2a | 31 | 31 | 100% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **247** | **174** | **70.4%** |
+| **Total** | **250** | **184** | **73.6%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
+*Note: Phase 2a.7 (10 tasks) verified complete on 2026-01-06 - all options are global, defined once in src/cli/index.ts*
