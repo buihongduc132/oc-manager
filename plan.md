@@ -520,12 +520,18 @@ When documentation and code conflict, resolve using this priority:
 - [x] Document 1-based index option for `chat show`
 
 ### 2.12 README.md Exit Codes
-- [ ] Add exit codes section
-- [ ] Document exit code 0: success
-- [ ] Document exit code 1: general error
-- [ ] Document exit code 2: usage error
-- [ ] Document exit code 3: not found
-- [ ] Document exit code 4: file operation failure
+- [x] Add exit codes section
+  - **Finding**: Already documented in README.md:333-341
+- [x] Document exit code 0: success
+  - **Finding**: Documented as "Success" at README.md:337
+- [x] Document exit code 1: general error
+  - **Finding**: Documented as "General error" at README.md:338
+- [x] Document exit code 2: usage error
+  - **Finding**: Documented as "Usage error (missing required options, invalid arguments)" at README.md:339
+- [x] Document exit code 3: not found
+  - **Finding**: Documented as "Resource not found (invalid project/session/message ID)" at README.md:340
+- [x] Document exit code 4: file operation failure
+  - **Finding**: Documented as "File operation error (backup or delete failure)" at README.md:341
 
 ### 2.13 README.md Delete Semantics
 - [ ] Document that delete removes metadata only
@@ -792,10 +798,10 @@ When documentation and code conflict, resolve using this priority:
 |-------|-------|-----------|----------|
 | Phase 0 | 3 | 0 | 0% |
 | Phase 1 | 59 | 59 | 100% |
-| Phase 2 | 78 | 76 | 97% |
+| Phase 2 | 78 | 82 | 100% |
 | Phase 2a | 28 | 2 | 7% |
 | Phase 2b | 7 | 1 | 14% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **232** | **138** | **59.5%** |
+| **Total** | **232** | **144** | **62.1%** |
