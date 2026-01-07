@@ -718,9 +718,12 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Consistent formatting - clear section headers, logical grouping, aligned indentation
 
 ### 2b.2 TUI In-App Help
-- [ ] Locate help overlay in `src/tui/app.tsx`
-- [ ] Verify it matches `src/tui/args.ts` help text
-- [ ] Update if discrepancies found
+- [x] Locate help overlay in `src/tui/app.tsx`
+  - **Finding**: HelpScreen component at lines 1151-1291 renders in-app help modal
+- [x] Verify it matches `src/tui/args.ts` help text
+  - **Finding**: HelpScreen was missing Chat search and Chat viewer sections that args.ts documents
+- [x] Update if discrepancies found
+  - **Fixed**: Added Chat Search and Chat Viewer sections to HelpScreen component (lines 1275-1307)
 
 ### 2b.3 Optional: Add CLI Overview to TUI Help
 - [ ] If DECISION-001 approves Option B:
@@ -876,11 +879,11 @@ When documentation and code conflict, resolve using this priority:
 | Phase 1 | 59 | 59 | 100% |
 | Phase 2 | 93 | 93 | 100% |
 | Phase 2a | 31 | 31 | 100% |
-| Phase 2b | 7 | 5 | 71% |
+| Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 0 | 0% |
 | Phase 4 | 6 | 0 | 0% |
 | Phase 5 | 40 | 0 | 0% |
-| **Total** | **250** | **188** | **75.2%** |
+| **Total** | **250** | **190** | **76.0%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*

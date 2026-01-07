@@ -1272,6 +1272,45 @@ const HelpScreen = ({ onDismiss }: { onDismiss: () => void }) => {
             </Bullet>
           </Section>
 
+          <Section title="Chat Search">
+            <Bullet>
+              <text>Type query, </text>
+              <KeyChip k="Enter" /> <text> — search / open result</text>
+            </Bullet>
+            <Bullet>
+              <text>Navigate: </text>
+              <KeyChip k="Up" /> <text> / </text> <KeyChip k="Down" />
+            </Bullet>
+            <Bullet>
+              <text>Close: </text>
+              <KeyChip k="Esc" />
+            </Bullet>
+          </Section>
+
+          <Section title="Chat Viewer">
+            <Bullet>
+              <text>Navigate: </text>
+              <KeyChip k="Up" /> <text> / </text> <KeyChip k="Down" />
+            </Bullet>
+            <Bullet>
+              <text>Jump: </text>
+              <KeyChip k="PgUp" /> <text> / </text> <KeyChip k="PgDn" />
+              <text> (10 messages)</text>
+            </Bullet>
+            <Bullet>
+              <text>First/Last: </text>
+              <KeyChip k="Home" /> <text> / </text> <KeyChip k="End" />
+            </Bullet>
+            <Bullet>
+              <text>Copy message: </text>
+              <KeyChip k="Y" />
+            </Bullet>
+            <Bullet>
+              <text>Close: </text>
+              <KeyChip k="Esc" />
+            </Bullet>
+          </Section>
+
           <Section title="Tips">
             <Bullet>
               <text>Use </text> <KeyChip k="M" /> <text> to quickly isolate missing projects.</text>
