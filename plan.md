@@ -971,7 +971,10 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: README.md:61 said "developed/tested on 1.2.x" but package.json:7 specifies `bun@1.3.2`
   - **Fixed**: Updated to "developed/tested on 1.3.x"
   - **Verified**: All other version numbers are example data (session versions "1.1.4" in JSON examples) - no issues
-- [ ] Verify help routing is documented correctly
+- [x] Verify help routing is documented correctly
+  - **Verified**: README.md:158-183 correctly documents the dual help system. Tested:
+    - `--help` shows "OpenCode Metadata TUI" (TUI help with key bindings) ✓
+    - `projects --help` shows "Usage: opencode-manager projects" (Commander CLI help) ✓
 
 ### 5c: Final Checklist
 - [ ] Every CLI flag documented matches source code
