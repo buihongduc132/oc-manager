@@ -827,8 +827,10 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: Output `0.3.1` matches `package.json:3` version `"0.3.1"`
 - [x] Read `src/cli/index.ts:80` and verify `.version()` call uses package version
   - **Finding**: CLI `.version("0.3.1")` matches package.json - both hardcode version (acceptable pattern)
-- [ ] Read README.md and verify Bun version requirement says "1.3.0+"
-- [ ] Read `package.json` engines and confirm ">=1.3.0"
+- [x] Read README.md and verify Bun version requirement says "1.3.0+"
+  - **Verified**: README.md:61 states "Bun **1.3.0+**"
+- [x] Read `package.json` engines and confirm ">=1.3.0"
+  - **Verified**: package.json:9 specifies `"bun": ">=1.3.0"`
 
 ### 5b: Help Output Validation - Root
 - [ ] Run `bun run src/bin/opencode-manager.ts --help`
@@ -920,8 +922,8 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
 | Phase 4 | 6 | 4 | 67% |
-| Phase 5 | 40 | 0 | 0% |
-| **Total** | **250** | **205** | **82%** |
+| Phase 5 | 40 | 6 | 15% |
+| **Total** | **250** | **211** | **84%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
