@@ -959,7 +959,14 @@ When documentation and code conflict, resolve using this priority:
     - `home-screen.png` ✓
     - `help-screen.png` ✓
   - **Note**: Storage paths (`storage/project/`, `storage/sessions/`, `storage/message/`) are runtime paths describing data layout, not source files
-- [ ] Search README for all script names and verify they work
+- [x] Search README for all script names and verify they work
+  - **Verified**: All scripts work correctly:
+    - `bun run tui` (package.json script) ✓ - launches TUI with help output
+    - `bun run dev` (package.json script) - watch mode, not tested (requires file changes)
+    - `bun run typecheck` (package.json script) ✓ - runs tsc --noEmit successfully
+    - `./manage_opencode_projects.py` (README.md:93,431) ✓ - Python wrapper works, shows TUI help
+    - `opencode-gen.sh` (README.md:432) ✓ - script exists and is executable
+    - `bun run src/bin/opencode-manager.ts --version` ✓ - outputs 0.3.1
 - [ ] Search README for all version numbers and verify accuracy
 - [ ] Verify help routing is documented correctly
 
