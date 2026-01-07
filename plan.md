@@ -861,8 +861,10 @@ When documentation and code conflict, resolve using this priority:
   - **Verified**: Shows Commander help with list, delete, rename, move, copy subcommands
 - [x] Verify shows Commander help with all subcommands
   - **Verified**: All 5 subcommands displayed (list, delete, rename, move, copy)
-- [ ] Run `bun run src/bin/opencode-manager.ts sessions list --help`
-- [ ] Verify shows list options
+- [x] Run `bun run src/bin/opencode-manager.ts sessions list --help`
+  - **Verified**: Shows `-p, --project <projectId>` and `-s, --search <query>` options
+- [x] Verify shows list options
+  - **Verified**: Both documented options displayed correctly
 - [ ] Run `bun run src/bin/opencode-manager.ts sessions delete --help`
 - [ ] Verify shows delete options
 - [ ] Run `bun run src/bin/opencode-manager.ts sessions rename --help`
@@ -934,8 +936,8 @@ When documentation and code conflict, resolve using this priority:
 | Phase 2b | 7 | 7 | 100% |
 | Phase 3 | 11 | 11 | 100% |
 | Phase 4 | 6 | 4 | 67% |
-| Phase 5 | 40 | 18 | 45% |
-| **Total** | **250** | **223** | **89%** |
+| Phase 5 | 40 | 20 | 50% |
+| **Total** | **250** | **225** | **90%** |
 
 *Note: Phase 2.14-2.16 (12 tasks) verified complete on 2026-01-06*
 *Note: Phase 2.17 sessions list example verified 2026-01-06*
