@@ -82,6 +82,10 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): TUIOptions {
       printUsage()
       process.exit(0)
     }
+    if (token === "--version" || token === "-V") {
+      console.log("0.3.1")
+      process.exit(0)
+    }
   }
 
   return { root }
