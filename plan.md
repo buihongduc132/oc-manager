@@ -259,9 +259,11 @@ When documentation and code conflict, resolve using this priority:
 - [x] View `help-screen.png` and note what it shows
   - **Finding**: Shows help overlay modal with four sections (Global, Projects, Sessions, Tips), lists keyboard shortcuts with cyan/yellow highlights
 - [x] Compare against current TUI appearance
-  - **Finding**: Screenshots match current TUI appearance - same layout, styling, key bindings, and overall design
+  - **Finding (CORRECTED)**: Screenshots are OUTDATED:
+    - `home-screen.png`: Sessions key hints missing `A select all`, `V view chat`, `F search chats`
+    - `help-screen.png`: Missing `A` key for Sessions, missing Chat Search section, missing Chat Viewer section
 - [x] Document if screenshots need updating
-  - **Finding**: Screenshots are UP-TO-DATE - no updates needed
+  - **Finding (CORRECTED)**: Screenshots need re-capture - see Phase 3.4 for details
 
 ### 1.16 PROJECT-SUMMARY.md Audit
 - [x] Read `PROJECT-SUMMARY.md` architecture section
@@ -770,10 +772,20 @@ When documentation and code conflict, resolve using this priority:
   - **Finding**: README.md:93 and README.md:431 references are accurate
 
 ### 3.4 Screenshots
-- [ ] Compare `home-screen.png` to current TUI
+- [x] Compare `home-screen.png` to current TUI
+  - **Finding**: OUTDATED - Sessions panel key hints missing: `A select all`, `V view chat`, `F search chats`
+  - **Current code (line 1019)**: `Keys: Space select, A select all, S sort, D delete, Y copy ID, V view chat, F search chats, Shift+R rename, M move, P copy, C clear filter, Esc clear`
+  - **Screenshot shows**: `Keys: Space select, S sort, D delete, Y copy ID, Shift+R rename, M move, P copy, C clear filter`
 - [ ] If outdated: capture new screenshot
-- [ ] Compare `help-screen.png` to current TUI help
+  - **MANUAL ACTION REQUIRED**: Run TUI and capture screenshot
+- [x] Compare `help-screen.png` to current TUI help
+  - **Finding**: OUTDATED - Help screen is missing:
+    - Sessions `A` (select all) key binding
+    - Entire "Chat Search" section (F key feature)
+    - Entire "Chat Viewer" section (V key feature)
+  - **Current code (lines 1275-1312)**: Has Chat Search and Chat Viewer sections
 - [ ] If outdated: capture new screenshot
+  - **MANUAL ACTION REQUIRED**: Run TUI, press ? to show help, and capture screenshot
 - [ ] Update README captions if screenshots change
 
 ---
