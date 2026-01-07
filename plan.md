@@ -576,7 +576,8 @@ When documentation and code conflict, resolve using this priority:
   - **Fixed**: Updated README.md:206-233 JSON example to include actual fields (`index`, `directory`, `version`, `filePath` omitted for brevity)
   - **Fixed**: Removed `truncated` from meta object (not implemented in code)
   - **Fixed**: Removed `truncated` documentation from meta field list (README.md:234-236)
-- [ ] Verify `chat list` example output matches current format
+- [x] Verify `chat list` example output matches current format
+  - **Finding**: No dedicated `chat list` output example exists in README.md - only referenced in piping examples (line 266). No discrepancy to fix.
 - [ ] Verify `chat show` example output matches current format
 - [ ] Verify `tokens` example output matches current format
 - [ ] Update any outdated flag names in examples
