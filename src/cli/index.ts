@@ -90,7 +90,7 @@ function createProgram(): Command {
   program
     .name("opencode-manager")
     .description("CLI for managing OpenCode metadata stores")
-    .version("0.4.0")
+    .version("0.4.1")
     // Global options
     .option(
       "-r, --root <path>",
