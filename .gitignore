@@ -43,3 +43,9 @@ Thumbs.db
 __pycache__/
 *.py[cod]
 
+
+# Ralph - AI agent loop files
+.ralph*
+
+# Ralph - AI agent loop files
+.opencode/plugin/ralph-write-guardrail.ts
