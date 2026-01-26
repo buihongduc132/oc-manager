@@ -5,27 +5,6 @@
 
 Terminal UI for inspecting, filtering, and pruning OpenCode metadata stored on disk. The app is written in TypeScript, runs on Bun, and renders with [`@opentui/react`](https://github.com/sst/opentui).
 
-## Screenshot Gallery
-
-<div align="center">
-  <figure style="display: inline-block; margin: 0 12px 20px; width: 100%; max-width: 360px;">
-    <img src="oc-manager.png" alt="OpenCode Metadata Manager home screen showing projects and sessions" style="width: 100%; height: auto;" />
-    <figcaption><em>Main workspace with Projects (left) and Sessions (right) panels.</em></figcaption>
-  </figure>
-  <figure style="display: inline-block; margin: 0 12px 20px; width: 100%; max-width: 360px;">
-    <img src="oc-manager-home.png" alt="OpenCode Metadata Manager home screen alternate view" style="width: 100%; height: auto;" />
-    <figcaption><em>Alternate home view with project/session context.</em></figcaption>
-  </figure>
-  <figure style="display: inline-block; margin: 0 12px 20px; width: 100%; max-width: 360px;">
-    <img src="oc-manager-search.png" alt="OpenCode Metadata Manager search view" style="width: 100%; height: auto;" />
-    <figcaption><em>Fuzzy search across sessions with ranked results.</em></figcaption>
-  </figure>
-  <figure style="display: inline-block; margin: 0 12px 20px; width: 100%; max-width: 360px;">
-    <img src="oc-manager-cli.png" alt="OpenCode Metadata Manager CLI output" style="width: 100%; height: auto;" />
-    <figcaption><em>Scriptable CLI output for listing projects and sessions.</em></figcaption>
-  </figure>
-</div>
-
 ## Screenshots
 
 <p align="center">
@@ -65,6 +44,7 @@ Terminal UI for inspecting, filtering, and pruning OpenCode metadata stored on d
 - Rich help overlay with live key hints (`?` or `H`).
 - Zero-install via `bunx` so even CI shells can run it without cloning.
 - **Token counting**: View token usage per session, per project, and globally.
+- **Experimental SQLite backend**: Faster queries for large stores via `--experimental-sqlite`.
 
 ## Token Counting
 
@@ -150,6 +130,43 @@ The CLI provides scriptable access to all management operations. Use subcommands
 | `-q, --quiet` | `false` | Suppress non-essential output |
 | `-c, --clipboard` | `false` | Copy output to clipboard |
 | `--backup-dir <path>` | — | Directory for backup copies before deletion |
+| `--experimental-sqlite` | `false` | Use SQLite database instead of JSONL files (experimental) |
+| `--db <path>` | `~/.local/share/opencode/opencode.db` | Path to SQLite database (implies `--experimental-sqlite`) |
+| `--sqlite-strict` | `false` | Fail on any SQLite warning or malformed data |
+| `--force-write` | `false` | Wait for SQLite write locks to clear before failing |
+
+#### Experimental SQLite Support
+
+OpenCode can store metadata in SQLite databases. The CLI supports this mode with `--experimental-sqlite` or by pointing directly at a database with `--db <path>`.
+
+Key behaviors:
+- Read operations open SQLite in readonly mode by default.
+- Write operations may fail if OpenCode has the database locked. Use `--force-write` to wait for the lock to clear.
+- When malformed rows are encountered, the CLI logs a warning and returns partial results. Use `--sqlite-strict` to fail fast.
+
+When to use SQLite vs JSONL:
+- Use SQLite when your OpenCode installation no longer writes JSONL files or when you want faster list/search operations on large stores.
+- Use JSONL when you need maximal compatibility with older OpenCode versions or when you want to avoid SQLite locking.
+
+Known limitations and differences:
+- Schema changes in OpenCode may break compatibility. The CLI validates required tables/columns and warns if the schema is incomplete.
+- SQLite records use virtual file paths (e.g., `sqlite:project:proj_123`) instead of JSON file paths.
+- Results may differ slightly from JSONL when extra SQLite-only rows exist.
+
+Examples:
+```bash
+# List projects using the default SQLite database
+opencode-manager projects list --experimental-sqlite
+
+# List sessions using an explicit SQLite database path
+opencode-manager sessions list --db ~/.local/share/opencode/opencode.db
+
+# Fail fast on malformed SQLite data
+opencode-manager projects list --db ~/.local/share/opencode/opencode.db --sqlite-strict
+
+# Wait for locks before destructive operations
+opencode-manager projects delete --id proj_missing --db ~/.local/share/opencode/opencode.db --yes --force-write
+```
 
 #### Commands Overview
 
@@ -457,13 +474,24 @@ Delete commands (`projects delete`, `sessions delete`) remove **metadata files o
 ### Project Structure
 ```
 src/
-  bin/opencode-manager.ts   # Bun-native CLI shim exposed as the bin entry
+  bin/opencode-manager.ts       # Bun-native CLI shim exposed as the bin entry
+  cli/
+    index.ts                    # Commander program with global options
+    commands/                   # Subcommand implementations (projects, sessions, chat, tokens)
+    resolvers.ts                # ID prefix resolution helpers
+  lib/
+    opencode-data.ts            # JSONL file-based data access
+    opencode-data-sqlite.ts     # SQLite backend (experimental)
+    opencode-data-provider.ts   # Unified DataProvider abstraction
   tui/
-    app.tsx                 # Main TUI implementation (panels, search, help)
-    index.tsx               # TUI entrypoint with launchTUI(), parseArgs(), bootstrap()
-manage_opencode_projects.py # Legacy Python launcher for backwards compatibility
-opencode-gen.sh             # Spec snapshot helper script
-PROJECT-SUMMARY.md          # Extended design notes & roadmap
+    app.tsx                     # Main TUI implementation (panels, search, help)
+    index.tsx                   # TUI entrypoint with launchTUI(), parseArgs(), bootstrap()
+tests/
+  fixtures/                     # Test data (JSONL and SQLite fixtures)
+  lib/                          # Unit tests for data modules
+  cli/                          # CLI integration tests
+manage_opencode_projects.py     # Legacy Python launcher for backwards compatibility
+PROJECT-SUMMARY.md              # Extended design notes & roadmap
 ```
 
 ## Packaging & Publish
