@@ -118,7 +118,7 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): TUIOptions {
       process.exit(0)
     }
     if (token === "--version" || token === "-V") {
-      console.log("0.4.0")
+      console.log("0.4.5")
       process.exit(0)
     }
   }
