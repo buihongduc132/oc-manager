@@ -2139,7 +2139,7 @@ export async function moveSessionSqlite(
     // Parse existing JSON data
     let data: SessionData
     try {
-      data = JSON.parse(row.data) as SessionData
+      data = JSON.parse(row.data ?? "{}") as SessionData
     } catch (error) {
       throw new Error(
         formatSqliteErrorMessage(error, `Failed to parse session data for: ${options.sessionId}`, options)
@@ -2163,13 +2163,13 @@ export async function moveSessionSqlite(
     }
 
     // Build and return the updated session record
-    const createdAt = msToDate(row.created_at) ?? msToDate(data.time?.created)
+    const createdAt = msToDate(row.created_at as number | null | undefined) ?? msToDate(data.time?.created)
     const directory = expandUserPath(data.directory)
 
     return {
       index: 1, // Single result, so index is 1
       filePath: `sqlite:session:${row.id}`,
-      sessionId: row.id,
+      sessionId: row.id ?? "",
       projectId: options.targetProjectId,
       directory: directory ?? "",
       title: typeof data.title === "string" ? data.title : "",
@@ -2273,7 +2273,7 @@ export async function copySessionSqlite(
     // Parse existing session JSON data
     let sessionData: SessionData
     try {
-      sessionData = JSON.parse(sessionRow.data) as SessionData
+      sessionData = JSON.parse(sessionRow.data ?? "{}") as SessionData
     } catch (error) {
       throw new Error(
         formatSqliteErrorMessage(error, `Failed to parse session data for: ${options.sessionId}`, options)
@@ -2319,7 +2319,9 @@ export async function copySessionSqlite(
     // Create ID mapping for messages (old ID -> new ID)
     const messageIdMap = new Map<string, string>()
     for (const msg of messageRows) {
-      messageIdMap.set(msg.id, generateId("msg"))
+      if (msg.id) {
+        messageIdMap.set(msg.id, generateId("msg"))
+      }
     }
 
     // Begin transaction for atomicity
@@ -2350,12 +2352,13 @@ export async function copySessionSqlite(
         )
 
         for (const msgRow of messageRows) {
+          if (!msgRow.id) continue
           const newMessageId = messageIdMap.get(msgRow.id)!
 
           // Parse and update message data
           let msgData: MessageData
           try {
-            msgData = JSON.parse(msgRow.data) as MessageData
+            msgData = JSON.parse(msgRow.data ?? "{}") as MessageData
           } catch (error) {
             const message = formatSqliteErrorMessage(
               error,
@@ -2378,7 +2381,7 @@ export async function copySessionSqlite(
           insertMessageStmt.run(
             newMessageId,
             newSessionId,
-            msgRow.created_at,
+            (msgRow.created_at as number | null | undefined) ?? null,
             JSON.stringify(newMsgData)
           )
         }
@@ -2391,7 +2394,7 @@ export async function copySessionSqlite(
         )
 
         for (const partRow of partRows) {
-          const newMessageId = messageIdMap.get(partRow.message_id)
+          const newMessageId = messageIdMap.get(partRow.message_id ?? "")
           if (!newMessageId) {
             // Skip orphaned parts (message was skipped due to malformed data)
             continue
@@ -2402,7 +2405,7 @@ export async function copySessionSqlite(
           // Parse and update part data
           let partData: PartData
           try {
-            partData = JSON.parse(partRow.data) as PartData
+            partData = JSON.parse(partRow.data ?? "{}") as PartData
           } catch (error) {
             const message = formatSqliteErrorMessage(
               error,
