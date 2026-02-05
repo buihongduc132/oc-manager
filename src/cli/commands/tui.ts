@@ -31,6 +31,13 @@ export function registerTUICommand(parent: Command): void {
     .action(async function (this: Command) {
       const globalOpts = parseGlobalOptions(collectOptions(this))
       const { launchTUI } = await import("../../tui/index")
-      await launchTUI({ root: globalOpts.root })
+      const backend = globalOpts.experimentalSqlite || globalOpts.dbPath ? "sqlite" : "jsonl"
+      await launchTUI({
+        root: globalOpts.root,
+        backend,
+        dbPath: globalOpts.dbPath,
+        sqliteStrict: globalOpts.sqliteStrict,
+        forceWrite: globalOpts.forceWrite,
+      })
     })
 }

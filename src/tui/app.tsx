@@ -13,34 +13,21 @@ import { copyToClipboardSync } from "../lib/clipboard"
 import {
   ProjectRecord,
   SessionRecord,
-  deleteProjectMetadata,
-  deleteSessionMetadata,
   describeProject,
   describeSession,
   formatDate,
   formatDisplayPath,
-  loadProjectRecords,
-  loadSessionRecords,
-  updateSessionTitle,
-  copySession,
-  moveSession,
-  copySessions,
-  moveSessions,
   BatchOperationResult,
   TokenSummary,
   TokenBreakdown,
   AggregateTokenSummary,
-  computeSessionTokenSummary,
-  computeProjectTokenSummary,
-  computeGlobalTokenSummary,
   clearTokenCache,
   ChatMessage,
   ChatPart,
-  loadSessionChatIndex,
-  hydrateChatMessageParts,
   ChatSearchResult,
-  searchSessionsChat,
 } from "../lib/opencode-data"
+import { DEFAULT_SQLITE_PATH } from "../lib/opencode-data-sqlite"
+import { createProvider, type DataProvider, type StorageBackend } from "../lib/opencode-data-provider"
 import { createSearcher, type SearchCandidate } from "../lib/search"
 
 type TabKey = "projects" | "sessions"
@@ -60,7 +47,7 @@ type ConfirmState = {
 }
 
 type ProjectsPanelProps = {
-  root: string
+  provider: DataProvider
   active: boolean
   locked: boolean
   searchQuery: string
@@ -70,7 +57,7 @@ type ProjectsPanelProps = {
 }
 
 type SessionsPanelProps = {
-  root: string
+  provider: DataProvider
   active: boolean
   locked: boolean
   projectFilter: string | null
@@ -133,6 +120,33 @@ function formatAggregateSummaryShort(summary: AggregateTokenSummary): string {
     return `${base} (+${summary.unknownSessions} unknown)`
   }
   return base
+}
+
+async function runBatchSessionOperation(
+  provider: DataProvider,
+  sessions: SessionRecord[],
+  targetProjectId: string,
+  mode: "move" | "copy"
+): Promise<BatchOperationResult> {
+  const succeeded: BatchOperationResult["succeeded"] = []
+  const failed: BatchOperationResult["failed"] = []
+
+  for (const session of sessions) {
+    try {
+      const newRecord =
+        mode === "move"
+          ? await provider.moveSession(session, targetProjectId)
+          : await provider.copySession(session, targetProjectId)
+      succeeded.push({ session, newRecord })
+    } catch (error) {
+      failed.push({
+        session,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  return { succeeded, failed }
 }
 
 // Clipboard functionality moved to ../lib/clipboard.ts
@@ -245,7 +259,7 @@ const ProjectSelector = ({
 }
 
 const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function ProjectsPanel(
-  { root, active, locked, searchQuery, onNotify, requestConfirm, onNavigateToSessions },
+  { provider, active, locked, searchQuery, onNotify, requestConfirm, onNavigateToSessions },
   ref,
 ) {
   const [records, setRecords] = useState<ProjectRecord[]>([])
@@ -279,7 +293,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
       setLoading(true)
       setError(null)
       try {
-        const data = await loadProjectRecords({ root })
+        const data = await provider.loadProjectRecords()
         setRecords(data)
         if (!silent) {
           onNotify(`Loaded ${data.length} project(s).`)
@@ -292,7 +306,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
         setLoading(false)
       }
     },
-    [root, onNotify],
+    [provider, onNotify],
   )
 
   useEffect(() => {
@@ -330,13 +344,13 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
   // Load all sessions once for token computation
   useEffect(() => {
     let cancelled = false
-    loadSessionRecords({ root }).then((sessions) => {
+    provider.loadSessionRecords().then((sessions) => {
       if (!cancelled) {
         setAllSessions(sessions)
       }
     })
     return () => { cancelled = true }
-  }, [root, records]) // Re-fetch when projects change (implies sessions may have changed)
+  }, [provider, records]) // Re-fetch when projects change (implies sessions may have changed)
 
   // Compute token summary for current project
   useEffect(() => {
@@ -345,7 +359,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
       return
     }
     let cancelled = false
-    computeProjectTokenSummary(currentRecord.projectId, allSessions, root).then((summary) => {
+    provider.computeProjectTokenSummary(currentRecord.projectId, allSessions).then((summary) => {
       if (!cancelled) {
         setCurrentProjectTokens(summary)
       }
@@ -353,7 +367,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
     return () => {
       cancelled = true
     }
-  }, [currentRecord, allSessions, root])
+  }, [currentRecord, allSessions, provider])
 
   const toggleSelection = useCallback((record: ProjectRecord | undefined) => {
     if (!record) {
@@ -401,7 +415,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
         .slice(0, MAX_CONFIRM_PREVIEW)
         .map((record) => describeProject(record, { fullPath: true })),
       onConfirm: async () => {
-        const { removed, failed } = await deleteProjectMetadata(selectedRecords)
+        const { removed, failed } = await provider.deleteProjectMetadata(selectedRecords)
         setSelectedIndexes(new Set())
         const msg = failed.length
           ? `Removed ${removed.length} project file(s). Failed: ${failed.length}`
@@ -410,7 +424,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
         await refreshRecords(true)
       },
     })
-  }, [selectedRecords, onNotify, requestConfirm, refreshRecords])
+  }, [selectedRecords, onNotify, requestConfirm, refreshRecords, provider])
 
   const handleKey = useCallback(
     (key: KeyEvent) => {
@@ -549,7 +563,7 @@ const ProjectsPanel = forwardRef<PanelHandle, ProjectsPanelProps>(function Proje
 })
 
 const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function SessionsPanel(
-  { root, active, locked, projectFilter, searchQuery, globalTokenSummary, onNotify, requestConfirm, onClearFilter, onOpenChatViewer },
+  { provider, active, locked, projectFilter, searchQuery, globalTokenSummary, onNotify, requestConfirm, onClearFilter, onOpenChatViewer },
   ref,
 ) {
   const [records, setRecords] = useState<SessionRecord[]>([])
@@ -637,7 +651,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
       setLoading(true)
       setError(null)
       try {
-        const data = await loadSessionRecords({ root, projectId: projectFilter || undefined })
+        const data = await provider.loadSessionRecords({ projectId: projectFilter || undefined })
         setRecords(data)
         if (!silent) {
           onNotify(`Loaded ${data.length} session(s).`)
@@ -650,7 +664,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
         setLoading(false)
       }
     },
-    [root, projectFilter, onNotify],
+    [provider, projectFilter, onNotify],
   )
 
   useEffect(() => {
@@ -692,7 +706,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
       return
     }
     let cancelled = false
-    computeSessionTokenSummary(currentSession, root).then((summary) => {
+    provider.computeSessionTokenSummary(currentSession).then((summary) => {
       if (!cancelled) {
         setCurrentTokenSummary(summary)
       }
@@ -700,7 +714,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
     return () => {
       cancelled = true
     }
-  }, [currentSession, root])
+  }, [currentSession, provider])
 
   // Compute filtered token summary (deferred to avoid UI freeze)
   useEffect(() => {
@@ -713,7 +727,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
 
     // Compute filtered (project-only) if filter is active.
     if (projectFilter) {
-      computeProjectTokenSummary(projectFilter, records, root).then((summary) => {
+      provider.computeProjectTokenSummary(projectFilter, records).then((summary) => {
         if (!cancelled) {
           setFilteredTokenSummary(summary)
         }
@@ -723,7 +737,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
     return () => {
       cancelled = true
     }
-  }, [records, projectFilter, root])
+  }, [records, projectFilter, provider])
 
   const toggleSelection = useCallback((session: SessionRecord | undefined) => {
     if (!session) {
@@ -774,7 +788,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
         .slice(0, MAX_CONFIRM_PREVIEW)
         .map((session) => describeSession(session, { fullPath: true })),
       onConfirm: async () => {
-        const { removed, failed } = await deleteSessionMetadata(selectedSessions)
+        const { removed, failed } = await provider.deleteSessionMetadata(selectedSessions)
         setSelectedIndexes(new Set())
         const msg = failed.length
           ? `Removed ${removed.length} session file(s). Failed: ${failed.length}`
@@ -783,7 +797,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
         await refreshRecords(true)
       },
     })
-  }, [selectedSessions, onNotify, requestConfirm, refreshRecords])
+  }, [selectedSessions, onNotify, requestConfirm, refreshRecords, provider])
 
   const executeRename = useCallback(async () => {
     if (!currentSession || !renameValue.trim()) {
@@ -796,7 +810,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
       return
     }
     try {
-      await updateSessionTitle(currentSession.filePath, renameValue.trim())
+      await provider.updateSessionTitle(currentSession, renameValue.trim())
       onNotify(`Renamed to "${renameValue.trim()}"`)
       setIsRenaming(false)
       setRenameValue('')
@@ -805,7 +819,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
       const msg = error instanceof Error ? error.message : String(error)
       onNotify(`Rename failed: ${msg}`, 'error')
     }
-  }, [currentSession, renameValue, onNotify, refreshRecords])
+  }, [currentSession, renameValue, onNotify, refreshRecords, provider])
 
   const executeTransfer = useCallback(async (
     targetProject: ProjectRecord,
@@ -814,8 +828,12 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
     setIsSelectingProject(false)
     setOperationMode(null)
 
-    const operationFn = mode === 'move' ? moveSessions : copySessions
-    const result = await operationFn(selectedSessions, targetProject.projectId, root)
+    const result = await runBatchSessionOperation(
+      provider,
+      selectedSessions,
+      targetProject.projectId,
+      mode
+    )
 
     setSelectedIndexes(new Set())
 
@@ -833,7 +851,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
     }
 
     await refreshRecords(true)
-  }, [selectedSessions, root, onNotify, refreshRecords])
+  }, [selectedSessions, provider, onNotify, refreshRecords])
 
   const handleKey = useCallback(
     (key: KeyEvent) => {
@@ -944,7 +962,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
           return
         }
         // Load projects for selection
-        loadProjectRecords({ root }).then(projects => {
+        provider.loadProjectRecords().then(projects => {
           // Filter out current project if filtering by project
           const filtered = projectFilter
             ? projects.filter(p => p.projectId !== projectFilter)
@@ -964,7 +982,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
           onNotify('No sessions selected for copy', 'error')
           return
         }
-        loadProjectRecords({ root }).then(projects => {
+        provider.loadProjectRecords().then(projects => {
           setAvailableProjects(projects)
           setProjectCursor(0)
           setOperationMode('copy')
@@ -989,7 +1007,7 @@ const SessionsPanel = forwardRef<PanelHandle, SessionsPanelProps>(function Sessi
         return
       }
     },
-    [active, locked, currentSession, projectFilter, onClearFilter, onNotify, requestDeletion, toggleSelection, isRenaming, executeRename, isSelectingProject, availableProjects, projectCursor, operationMode, executeTransfer, selectedSessions, root, onOpenChatViewer],
+    [active, locked, currentSession, projectFilter, onClearFilter, onNotify, requestDeletion, toggleSelection, isRenaming, executeRename, isSelectingProject, availableProjects, projectCursor, operationMode, executeTransfer, selectedSessions, provider, onOpenChatViewer],
   )
 
   useImperativeHandle(
@@ -1526,7 +1544,19 @@ const ChatViewer = ({
   )
 }
 
-export const App = ({ root }: { root: string }) => {
+export const App = ({
+  root,
+  backend,
+  dbPath,
+  sqliteStrict,
+  forceWrite,
+}: {
+  root: string
+  backend: StorageBackend
+  dbPath?: string
+  sqliteStrict: boolean
+  forceWrite: boolean
+}) => {
   const renderer = useRenderer()
   const projectsRef = useRef<PanelHandle>(null)
   const sessionsRef = useRef<PanelHandle>(null)
@@ -1537,6 +1567,7 @@ export const App = ({ root }: { root: string }) => {
   const [searchQuery, setSearchQuery] = useState("")
   const [status, setStatus] = useState("Ready")
   const [statusLevel, setStatusLevel] = useState<NotificationLevel>("info")
+  const [sqliteWarning, setSqliteWarning] = useState<string | null>(null)
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null)
   const [showHelp, setShowHelp] = useState(true)
   const [confirmBusy, setConfirmBusy] = useState(false)
@@ -1561,35 +1592,56 @@ export const App = ({ root }: { root: string }) => {
   const [chatSearching, setChatSearching] = useState(false)
   const [allSessions, setAllSessions] = useState<SessionRecord[]>([])
 
+  const resolvedDbPath = useMemo(() => {
+    if (backend !== "sqlite") {
+      return undefined
+    }
+    return dbPath ?? DEFAULT_SQLITE_PATH
+  }, [backend, dbPath])
+
+  const notify = useCallback((message: string, level: NotificationLevel = "info") => {
+    setStatus(message)
+    setStatusLevel(level)
+  }, [])
+
+  const provider = useMemo(() => {
+    return createProvider({
+      backend,
+      root,
+      dbPath: resolvedDbPath,
+      sqliteStrict,
+      forceWrite,
+      onWarning: (message) => {
+        setSqliteWarning(message)
+        notify(message, "error")
+      },
+    })
+  }, [backend, root, resolvedDbPath, sqliteStrict, forceWrite, notify, setSqliteWarning])
+
   // Load global tokens
   useEffect(() => {
     let cancelled = false
-    loadSessionRecords({ root }).then((sessions) => {
+    provider.loadSessionRecords().then((sessions) => {
       if (cancelled) return
-      return computeGlobalTokenSummary(sessions, root)
+      return provider.computeGlobalTokenSummary(sessions)
     }).then((summary) => {
       if (!cancelled && summary) {
         setGlobalTokens(summary)
       }
     })
     return () => { cancelled = true }
-  }, [root, tokenRefreshKey])
+  }, [provider, tokenRefreshKey])
 
   // Load all sessions for chat search
   useEffect(() => {
     let cancelled = false
-    loadSessionRecords({ root }).then((sessions) => {
+    provider.loadSessionRecords().then((sessions) => {
       if (!cancelled) {
         setAllSessions(sessions)
       }
     })
     return () => { cancelled = true }
-  }, [root, tokenRefreshKey])
-
-  const notify = useCallback((message: string, level: NotificationLevel = "info") => {
-    setStatus(message)
-    setStatusLevel(level)
-  }, [])
+  }, [provider, tokenRefreshKey])
 
   const requestConfirm = useCallback((state: ConfirmState) => {
     setConfirmState(state)
@@ -1637,7 +1689,7 @@ export const App = ({ root }: { root: string }) => {
     setChatPartsCache(new Map())
 
     try {
-      const messages = await loadSessionChatIndex(session.sessionId, root)
+      const messages = await provider.loadSessionChatIndex(session.sessionId)
       setChatMessages(messages)
       if (messages.length > 0) {
         setChatCursor(0)
@@ -1648,7 +1700,7 @@ export const App = ({ root }: { root: string }) => {
     } finally {
       setChatLoading(false)
     }
-  }, [root])
+  }, [provider])
 
   const closeChatViewer = useCallback(() => {
     setChatViewerOpen(false)
@@ -1671,7 +1723,7 @@ export const App = ({ root }: { root: string }) => {
     }
 
     try {
-      const hydrated = await hydrateChatMessageParts(message, root)
+      const hydrated = await provider.hydrateChatMessageParts(message)
       setChatPartsCache(prev => new Map(prev).set(message.messageId, hydrated))
       setChatMessages(prev => prev.map(m =>
         m.messageId === message.messageId ? hydrated : m
@@ -1688,7 +1740,7 @@ export const App = ({ root }: { root: string }) => {
         m.messageId === message.messageId ? errorMsg : m
       ))
     }
-  }, [root, chatPartsCache])
+  }, [provider, chatPartsCache])
 
   const copyChatMessage = useCallback((message: ChatMessage) => {
     if (!message.parts || message.parts.length === 0) {
@@ -1731,7 +1783,7 @@ export const App = ({ root }: { root: string }) => {
         ? allSessions.filter(s => s.projectId === sessionFilter)
         : allSessions
 
-      const results = await searchSessionsChat(sessionsToSearch, chatSearchQuery, root, { maxResults: 100 })
+      const results = await provider.searchSessionsChat(sessionsToSearch, chatSearchQuery, { maxResults: 100 })
       setChatSearchResults(results)
       setChatSearchCursor(0)
     } catch (err) {
@@ -1741,7 +1793,7 @@ export const App = ({ root }: { root: string }) => {
     } finally {
       setChatSearching(false)
     }
-  }, [chatSearchQuery, sessionFilter, allSessions, root, notify])
+  }, [chatSearchQuery, sessionFilter, allSessions, provider, notify])
 
   const handleChatSearchResult = useCallback(async (result: ChatSearchResult) => {
     // Find the session and open chat viewer at the matching message
@@ -1991,11 +2043,25 @@ export const App = ({ root }: { root: string }) => {
             <text fg={PALETTE.muted}>{globalTokens ? '?' : 'loading...'}</text>
           )}
         </box>
-        <text>Root: {root}</text>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          <text fg={PALETTE.accent}>Storage:</text>
+          <text fg={backend === "sqlite" ? PALETTE.info : PALETTE.muted}>
+            {backend === "sqlite" ? "SQLite" : "JSONL"}
+          </text>
+          <text fg={PALETTE.muted}>|</text>
+          <text>
+            {backend === "sqlite"
+              ? `DB: ${formatDisplayPath(resolvedDbPath ?? "(default)")}`
+              : `Root: ${formatDisplayPath(root)}`}
+          </text>
+        </box>
         <text>
           Tabs: [1] Projects [2] Sessions | Active: {activeTab} | Global: Tab switch, / search, X clear, R reload, Q quit, ? help
         </text>
         {sessionFilter ? <text fg="#a3e635">Session filter: {sessionFilter}</text> : null}
+        {backend === "sqlite" && sqliteWarning ? (
+          <text fg={PALETTE.danger}>SQLite warning: {sqliteWarning}</text>
+        ) : null}
       </box>
 
       {showHelp
@@ -2010,7 +2076,7 @@ export const App = ({ root }: { root: string }) => {
         <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
           <ProjectsPanel
             ref={projectsRef}
-            root={root}
+            provider={provider}
             active={activeTab === "projects"}
             locked={Boolean(confirmState) || showHelp}
             searchQuery={activeTab === "projects" ? searchQuery : ""}
@@ -2020,7 +2086,7 @@ export const App = ({ root }: { root: string }) => {
           />
           <SessionsPanel
             ref={sessionsRef}
-            root={root}
+            provider={provider}
             active={activeTab === "sessions"}
             locked={Boolean(confirmState) || showHelp || chatViewerOpen || chatSearchOpen}
             projectFilter={sessionFilter}

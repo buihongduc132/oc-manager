@@ -13,6 +13,7 @@ import { createCliRenderer } from "@opentui/core"
 
 import { App } from "./app"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
+import { DEFAULT_SQLITE_PATH } from "../lib/opencode-data-sqlite"
 import { parseArgs, printUsage, type TUIOptions } from "./args"
 
 // Re-export args module for external consumers
@@ -24,8 +25,21 @@ export { parseArgs, printUsage, type TUIOptions }
  */
 export async function launchTUI(options?: Partial<TUIOptions>): Promise<void> {
   const root = options?.root ?? DEFAULT_ROOT
+  const backend = options?.backend ?? (options?.dbPath ? "sqlite" : "jsonl")
+  const sqliteStrict = options?.sqliteStrict ?? false
+  const forceWrite = options?.forceWrite ?? false
+  const dbPath = backend === "sqlite" ? (options?.dbPath ?? DEFAULT_SQLITE_PATH) : undefined
+
   const renderer = await createCliRenderer()
-  createRoot(renderer).render(<App root={root} />)
+  createRoot(renderer).render(
+    <App
+      root={root}
+      backend={backend}
+      dbPath={dbPath}
+      sqliteStrict={sqliteStrict}
+      forceWrite={forceWrite}
+    />
+  )
 }
 
 /**

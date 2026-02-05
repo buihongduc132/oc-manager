@@ -7,9 +7,15 @@
 
 import { resolve } from "node:path"
 import { DEFAULT_ROOT } from "../lib/opencode-data"
+import { DEFAULT_SQLITE_PATH } from "../lib/opencode-data-sqlite"
+import type { StorageBackend } from "../lib/opencode-data-provider"
 
 export interface TUIOptions {
   root: string
+  backend: StorageBackend
+  dbPath?: string
+  sqliteStrict: boolean
+  forceWrite: boolean
 }
 
 /**
@@ -17,7 +23,14 @@ export interface TUIOptions {
  */
 export function printUsage(): void {
   console.log(`OpenCode Metadata TUI
-Usage: bun run tui [-- --root /path/to/storage]
+Usage: bun run tui [-- --root /path/to/storage] [-- --experimental-sqlite] [-- --db /path/to/opencode.db]
+
+Storage options:
+  --root <path>             Root path to JSONL storage (default: ~/.local/share/opencode)
+  --experimental-sqlite     Use SQLite backend instead of JSONL files
+  --db <path>               Path to SQLite database (implies --experimental-sqlite)
+  --sqlite-strict           Fail on SQLite warnings or malformed data
+  --force-write             Wait for SQLite write locks before failing
 
 Key bindings:
   Tab / 1 / 2     Switch between projects and sessions
@@ -70,12 +83,34 @@ Chat viewer (when open):
  */
 export function parseArgs(argv: string[] = process.argv.slice(2)): TUIOptions {
   let root = DEFAULT_ROOT
+  let backend: StorageBackend = "jsonl"
+  let dbPath: string | undefined
+  let sqliteStrict = false
+  let forceWrite = false
 
   for (let idx = 0; idx < argv.length; idx += 1) {
     const token = argv[idx]
     if (token === "--root" && argv[idx + 1]) {
       root = resolve(argv[idx + 1])
       idx += 1
+      continue
+    }
+    if (token === "--db" && argv[idx + 1]) {
+      dbPath = resolve(argv[idx + 1])
+      backend = "sqlite"
+      idx += 1
+      continue
+    }
+    if (token === "--experimental-sqlite") {
+      backend = "sqlite"
+      continue
+    }
+    if (token === "--sqlite-strict") {
+      sqliteStrict = true
+      continue
+    }
+    if (token === "--force-write") {
+      forceWrite = true
       continue
     }
     if (token === "--help" || token === "-h") {
@@ -88,5 +123,15 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): TUIOptions {
     }
   }
 
-  return { root }
+  if (backend === "sqlite" && !dbPath) {
+    dbPath = resolve(DEFAULT_SQLITE_PATH)
+  }
+
+  return {
+    root: resolve(root),
+    backend,
+    dbPath,
+    sqliteStrict,
+    forceWrite,
+  }
 }
