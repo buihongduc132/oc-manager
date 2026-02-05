@@ -183,6 +183,24 @@ function msToDate(ms?: number | null): Date | null {
   return new Date(ms)
 }
 
+function parseTimestamp(value: unknown): Date | null {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value
+  }
+  if (typeof value === "number") {
+    return msToDate(value)
+  }
+  if (typeof value === "string") {
+    const numeric = Number(value)
+    if (!Number.isNaN(numeric)) {
+      return msToDate(numeric)
+    }
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
+  return null
+}
+
 /**
  * Check if a path exists and is a directory.
  */
@@ -311,6 +329,75 @@ function validateSchemaForTables(db: Database, requirements: SchemaRequirements)
   }
 }
 
+function getTableColumns(db: Database, table: string): string[] | null {
+  const tableRow = db.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table) as { name?: string } | undefined
+  if (!tableRow?.name) {
+    return null
+  }
+  const columnRows = db.query(`PRAGMA table_info(${table})`).all() as { name: string }[]
+  return columnRows.map((row) => row.name)
+}
+
+function ensureTableColumns(
+  db: Database,
+  table: string,
+  required: string[],
+  options?: SqliteLoadOptions,
+  context?: string,
+  allowForceWrite = false
+): Set<string> | null {
+  let columns: string[] | null
+  try {
+    columns = getTableColumns(db, table)
+  } catch (error) {
+    const message = formatSqliteErrorMessage(error, "Failed to read SQLite schema", {
+      forceWrite: options?.forceWrite,
+      allowForceWrite,
+    })
+    if (isSqliteBusyError(error) || options?.strict) {
+      throw new Error(message)
+    }
+    warnSqlite(options, message)
+    return null
+  }
+
+  if (!columns) {
+    const message = `${context ? `${context}: ` : ""}SQLite schema is invalid (missing table: ${table}).`
+    if (options?.strict) {
+      throw new Error(message)
+    }
+    warnSqlite(options, message)
+    return null
+  }
+
+  const columnSet = new Set(columns)
+  const missing = required.filter((column) => !columnSet.has(column))
+  if (missing.length > 0) {
+    const available = Array.from(columnSet).join(", ")
+    const message = `${context ? `${context}: ` : ""}SQLite schema is invalid (missing columns: ${missing.map((col) => `${table}.${col}`).join(", ")}). Available columns: ${available}.`
+    if (options?.strict) {
+      throw new Error(message)
+    }
+    warnSqlite(options, message)
+    return null
+  }
+
+  return columnSet
+}
+
+function pickColumn(columns: Set<string>, candidates: string[]): string | null {
+  for (const candidate of candidates) {
+    if (columns.has(candidate)) {
+      return candidate
+    }
+  }
+  return null
+}
+
+function buildColumnAlias(column: string | null, alias: string): string {
+  return column ? `${column} as ${alias}` : `NULL as ${alias}`
+}
+
 function formatSchemaIssues(result: SchemaValidationResult, context?: string): string {
   const parts: string[] = []
   if (result.missingTables.length > 0) {
@@ -420,8 +507,11 @@ export function validateSchema(
  * Raw row structure from the SQLite project table.
  */
 interface ProjectRow {
-  id: string
-  data: string
+  id: string | null
+  data: string | null
+  worktree?: string | null
+  vcs?: string | null
+  created_at?: number | string | null
 }
 
 /**
@@ -430,6 +520,9 @@ interface ProjectRow {
 interface ProjectData {
   id?: string
   worktree?: string
+  directory?: string
+  path?: string
+  root?: string
   vcs?: string
   time?: {
     created?: number
@@ -452,14 +545,39 @@ export async function loadProjectRecordsSqlite(
   const records: ProjectRecord[] = []
 
   try {
-    if (!ensureSchema(db, buildSchemaRequirements(["project"]), options, "loadProjectRecords")) {
+    const columns = ensureTableColumns(db, "project", [], options, "loadProjectRecords")
+    if (!columns) {
       return []
     }
+
+    const idColumn = pickColumn(columns, ["id", "project_id"])
+    if (!idColumn) {
+      const available = Array.from(columns).join(", ")
+      const message = `loadProjectRecords: SQLite schema is invalid (missing columns: project.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      return []
+    }
+
+    const dataColumn = pickColumn(columns, ["data", "metadata", "payload", "json"])
+    const worktreeColumn = pickColumn(columns, ["worktree", "directory", "path", "root", "repo_path"])
+    const vcsColumn = pickColumn(columns, ["vcs", "scm", "vcs_type"])
+    const createdColumn = pickColumn(columns, ["created_at", "created", "created_ms", "createdAt"])
+
+    const selectColumns = [
+      buildColumnAlias(idColumn, "id"),
+      buildColumnAlias(dataColumn, "data"),
+      buildColumnAlias(worktreeColumn, "worktree"),
+      buildColumnAlias(vcsColumn, "vcs"),
+      buildColumnAlias(createdColumn, "created_at"),
+    ]
 
     // Query all projects from the database
     let rows: ProjectRow[] = []
     try {
-      rows = db.query("SELECT id, data FROM project").all() as ProjectRow[]
+      rows = db.query(`SELECT ${selectColumns.join(", ")} FROM project`).all() as ProjectRow[]
     } catch (error) {
       const message = formatSqliteErrorMessage(error, "Failed to query project table", {
         forceWrite: options.forceWrite,
@@ -476,26 +594,33 @@ export async function loadProjectRecordsSqlite(
     }
 
     for (const row of rows) {
-      let data: ProjectData = {}
-
-      // Parse JSON data column, skip malformed entries
-      try {
-        data = JSON.parse(row.data) as ProjectData
-      } catch (error) {
-        const message = formatSqliteErrorMessage(
-          error,
-          `Malformed JSON in project row "${row.id}"`,
-          options
-        )
-        if (options.strict) {
-          throw new Error(message)
-        }
-        warnSqlite(options, message)
+      if (!row.id) {
         continue
       }
+      let data: ProjectData = {}
 
-      const createdAt = msToDate(data.time?.created)
-      const worktree = expandUserPath(data.worktree)
+      if (row.data && row.data.trim().length > 0) {
+        // Parse JSON data column, skip malformed entries
+        try {
+          data = JSON.parse(row.data) as ProjectData
+        } catch (error) {
+          const message = formatSqliteErrorMessage(
+            error,
+            `Malformed JSON in project row "${row.id}"`,
+            options
+          )
+          if (options.strict) {
+            throw new Error(message)
+          }
+          warnSqlite(options, message)
+          continue
+        }
+      }
+
+      const worktreeRaw = row.worktree ?? data.worktree ?? data.directory ?? data.path ?? data.root
+      const worktree = expandUserPath(worktreeRaw ?? null)
+      const createdAt = parseTimestamp(row.created_at) ?? parseTimestamp(data.time?.created)
+      const vcs = typeof row.vcs === "string" ? row.vcs : (typeof data.vcs === "string" ? data.vcs : null)
       const state = await computeState(worktree)
 
       records.push({
@@ -504,7 +629,7 @@ export async function loadProjectRecordsSqlite(
         filePath: `sqlite:project:${row.id}`, // Virtual path for SQLite records
         projectId: row.id,
         worktree: worktree ?? "",
-        vcs: typeof data.vcs === "string" ? data.vcs : null,
+        vcs,
         createdAt,
         state,
       })
@@ -543,12 +668,15 @@ export interface SqliteSessionLoadOptions extends SqliteLoadOptions {
  * Raw row structure from the SQLite session table.
  */
 interface SessionRow {
-  id: string
-  project_id: string
-  parent_id: string | null
-  created_at: number | null
-  updated_at: number | null
-  data: string
+  id: string | null
+  project_id?: string | null
+  parent_id?: string | null
+  created_at?: number | string | null
+  updated_at?: number | string | null
+  data?: string | null
+  directory?: string | null
+  title?: string | null
+  version?: string | null
 }
 
 /**
@@ -557,8 +685,11 @@ interface SessionRow {
 interface SessionData {
   id?: string
   projectID?: string
+  projectId?: string
   parentID?: string
   directory?: string
+  cwd?: string
+  path?: string
   title?: string
   version?: string
   time?: {
@@ -583,16 +714,50 @@ export async function loadSessionRecordsSqlite(
   const records: SessionRecord[] = []
 
   try {
-    if (!ensureSchema(db, buildSchemaRequirements(["session"]), options, "loadSessionRecords")) {
+    const columns = ensureTableColumns(db, "session", [], options, "loadSessionRecords")
+    if (!columns) {
       return []
     }
 
+    const idColumn = pickColumn(columns, ["id", "session_id"])
+    if (!idColumn) {
+      const available = Array.from(columns).join(", ")
+      const message = `loadSessionRecords: SQLite schema is invalid (missing columns: session.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      return []
+    }
+
+    const projectIdColumn = pickColumn(columns, ["project_id", "projectID", "projectId", "project"])
+    const parentIdColumn = pickColumn(columns, ["parent_id", "parentID", "parentId", "parent"])
+    const createdColumn = pickColumn(columns, ["created_at", "created", "created_ms", "createdAt"])
+    const updatedColumn = pickColumn(columns, ["updated_at", "updated", "updated_ms", "updatedAt"])
+    const dataColumn = pickColumn(columns, ["data", "metadata", "payload", "json"])
+    const directoryColumn = pickColumn(columns, ["directory", "cwd", "path", "worktree", "root"])
+    const titleColumn = pickColumn(columns, ["title", "name"])
+    const versionColumn = pickColumn(columns, ["version", "client_version", "opencode_version"])
+
+    const selectColumns = [
+      buildColumnAlias(idColumn, "id"),
+      buildColumnAlias(projectIdColumn, "project_id"),
+      buildColumnAlias(parentIdColumn, "parent_id"),
+      buildColumnAlias(createdColumn, "created_at"),
+      buildColumnAlias(updatedColumn, "updated_at"),
+      buildColumnAlias(dataColumn, "data"),
+      buildColumnAlias(directoryColumn, "directory"),
+      buildColumnAlias(titleColumn, "title"),
+      buildColumnAlias(versionColumn, "version"),
+    ]
+
     // Build query with optional project_id filter
-    let query = "SELECT id, project_id, parent_id, created_at, updated_at, data FROM session"
+    let query = `SELECT ${selectColumns.join(", ")} FROM session`
     const params: string[] = []
-    
-    if (options.projectId) {
-      query += " WHERE project_id = ?"
+    const postFilterProjectId = options.projectId && !projectIdColumn ? options.projectId : null
+
+    if (options.projectId && projectIdColumn) {
+      query += ` WHERE ${projectIdColumn} = ?`
       params.push(options.projectId)
     }
 
@@ -617,38 +782,50 @@ export async function loadSessionRecordsSqlite(
     }
 
     for (const row of rows) {
+      if (!row.id) {
+        continue
+      }
       let data: SessionData = {}
 
-      // Parse JSON data column, skip malformed entries
-      try {
-        data = JSON.parse(row.data) as SessionData
-      } catch (error) {
-        const message = formatSqliteErrorMessage(
-          error,
-          `Malformed JSON in session row "${row.id}"`,
-          options
-        )
-        if (options.strict) {
-          throw new Error(message)
+      if (row.data && row.data.trim().length > 0) {
+        // Parse JSON data column, skip malformed entries
+        try {
+          data = JSON.parse(row.data) as SessionData
+        } catch (error) {
+          const message = formatSqliteErrorMessage(
+            error,
+            `Malformed JSON in session row "${row.id}"`,
+            options
+          )
+          if (options.strict) {
+            throw new Error(message)
+          }
+          warnSqlite(options, message)
+          continue
         }
-        warnSqlite(options, message)
+      }
+
+      const projectId = row.project_id ?? data.projectID ?? data.projectId ?? ""
+      if (postFilterProjectId && projectId !== postFilterProjectId) {
         continue
       }
 
       // Use column values first, fall back to data JSON
-      // created_at/updated_at columns are epoch milliseconds
-      const createdAt = msToDate(row.created_at) ?? msToDate(data.time?.created)
-      const updatedAt = msToDate(row.updated_at) ?? msToDate(data.time?.updated)
-      const directory = expandUserPath(data.directory)
+      const createdAt = parseTimestamp(row.created_at) ?? parseTimestamp(data.time?.created)
+      const updatedAt = parseTimestamp(row.updated_at) ?? parseTimestamp(data.time?.updated)
+      const directoryRaw = row.directory ?? data.directory ?? data.cwd ?? data.path
+      const directory = expandUserPath(directoryRaw ?? null)
+      const title = typeof row.title === "string" ? row.title : (typeof data.title === "string" ? data.title : "")
+      const version = typeof row.version === "string" ? row.version : (typeof data.version === "string" ? data.version : "")
 
       records.push({
         index: 0, // Will be set by withIndex
         filePath: `sqlite:session:${row.id}`, // Virtual path for SQLite records
         sessionId: row.id,
-        projectId: row.project_id ?? data.projectID ?? "",
+        projectId,
         directory: directory ?? "",
-        title: typeof data.title === "string" ? data.title : "",
-        version: typeof data.version === "string" ? data.version : "",
+        title,
+        version,
         createdAt,
         updatedAt,
       })
@@ -689,10 +866,18 @@ export interface SqliteChatLoadOptions extends SqliteLoadOptions {
  * Raw row structure from the SQLite message table.
  */
 interface MessageRow {
-  id: string
-  session_id: string
-  created_at: number | null
-  data: string
+  id: string | null
+  session_id?: string | null
+  created_at?: number | string | null
+  data?: string | null
+  role?: string | null
+  parent_id?: string | null
+  tokens_json?: string | null
+  input_tokens?: number | null
+  output_tokens?: number | null
+  reasoning_tokens?: number | null
+  cache_read?: number | null
+  cache_write?: number | null
 }
 
 /**
@@ -761,6 +946,42 @@ function parseMessageTokens(tokens: MessageData["tokens"]): TokenBreakdown | nul
   return breakdown
 }
 
+function parseTokenColumns(row: MessageRow): TokenBreakdown | null {
+  if (row.tokens_json) {
+    try {
+      const parsed = JSON.parse(row.tokens_json) as MessageData["tokens"]
+      const fromJson = parseMessageTokens(parsed)
+      if (fromJson) {
+        return fromJson
+      }
+    } catch {
+      // fall through to numeric columns
+    }
+  }
+
+  const input = asTokenNumber(row.input_tokens)
+  const output = asTokenNumber(row.output_tokens)
+  const reasoning = asTokenNumber(row.reasoning_tokens)
+  const cacheRead = asTokenNumber(row.cache_read)
+  const cacheWrite = asTokenNumber(row.cache_write)
+
+  const hasAny = input !== null || output !== null || reasoning !== null || cacheRead !== null || cacheWrite !== null
+  if (!hasAny) {
+    return null
+  }
+
+  const breakdown: TokenBreakdown = {
+    input: input ?? 0,
+    output: output ?? 0,
+    reasoning: reasoning ?? 0,
+    cacheRead: cacheRead ?? 0,
+    cacheWrite: cacheWrite ?? 0,
+    total: 0,
+  }
+  breakdown.total = breakdown.input + breakdown.output + breakdown.reasoning + breakdown.cacheRead + breakdown.cacheWrite
+  return breakdown
+}
+
 /**
  * Load chat message index for a session from SQLite (metadata only, no parts).
  * Returns an array of ChatMessage stubs with parts set to null.
@@ -775,15 +996,56 @@ export async function loadSessionChatIndexSqlite(
   const messages: ChatMessage[] = []
 
   try {
-    if (!ensureSchema(db, buildSchemaRequirements(["message"]), options, "loadSessionChatIndex")) {
+    const columns = ensureTableColumns(db, "message", [], options, "loadSessionChatIndex")
+    if (!columns) {
       return []
     }
 
-    // Query messages for the given session, ordered by created_at ascending
+    const idColumn = pickColumn(columns, ["id", "message_id"])
+    const sessionIdColumn = pickColumn(columns, ["session_id", "sessionId"])
+    if (!idColumn || !sessionIdColumn) {
+      const available = Array.from(columns).join(", ")
+      const message = `loadSessionChatIndex: SQLite schema is invalid (missing columns: message.id or message.session_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      return []
+    }
+
+    const createdColumn = pickColumn(columns, ["created_at", "created", "created_ms", "createdAt"])
+    const dataColumn = pickColumn(columns, ["data", "metadata", "payload", "json"])
+    const roleColumn = pickColumn(columns, ["role", "type"])
+    const parentColumn = pickColumn(columns, ["parent_id", "parentID", "parentId", "parent"])
+    const tokensColumn = pickColumn(columns, ["tokens", "token_data", "token_json"])
+    const inputTokensColumn = pickColumn(columns, ["input_tokens", "tokens_input", "input"])
+    const outputTokensColumn = pickColumn(columns, ["output_tokens", "tokens_output", "output"])
+    const reasoningTokensColumn = pickColumn(columns, ["reasoning_tokens", "tokens_reasoning", "reasoning"])
+    const cacheReadColumn = pickColumn(columns, ["cache_read", "cacheRead", "tokens_cache_read"])
+    const cacheWriteColumn = pickColumn(columns, ["cache_write", "cacheWrite", "tokens_cache_write"])
+
+    const selectColumns = [
+      buildColumnAlias(idColumn, "id"),
+      buildColumnAlias(sessionIdColumn, "session_id"),
+      buildColumnAlias(createdColumn, "created_at"),
+      buildColumnAlias(dataColumn, "data"),
+      buildColumnAlias(roleColumn, "role"),
+      buildColumnAlias(parentColumn, "parent_id"),
+      buildColumnAlias(tokensColumn, "tokens_json"),
+      buildColumnAlias(inputTokensColumn, "input_tokens"),
+      buildColumnAlias(outputTokensColumn, "output_tokens"),
+      buildColumnAlias(reasoningTokensColumn, "reasoning_tokens"),
+      buildColumnAlias(cacheReadColumn, "cache_read"),
+      buildColumnAlias(cacheWriteColumn, "cache_write"),
+    ]
+
+    const orderBy = createdColumn ? ` ORDER BY ${createdColumn} ASC` : ` ORDER BY ${idColumn} ASC`
+
+    // Query messages for the given session
     let rows: MessageRow[] = []
     try {
       rows = db.query(
-        "SELECT id, session_id, created_at, data FROM message WHERE session_id = ? ORDER BY created_at ASC"
+        `SELECT ${selectColumns.join(", ")} FROM message WHERE ${sessionIdColumn} = ?${orderBy}`
       ).all(options.sessionId) as MessageRow[]
     } catch (error) {
       const message = formatSqliteErrorMessage(error, "Failed to query message table", {
@@ -801,48 +1063,52 @@ export async function loadSessionChatIndexSqlite(
     }
 
     for (const row of rows) {
+      if (!row.id) {
+        continue
+      }
       let data: MessageData = {}
 
-      // Parse JSON data column, skip malformed entries
-      try {
-        data = JSON.parse(row.data) as MessageData
-      } catch (error) {
-        const message = formatSqliteErrorMessage(
-          error,
-          `Malformed JSON in message row "${row.id}"`,
-          options
-        )
-        if (options.strict) {
-          throw new Error(message)
+      if (row.data && row.data.trim().length > 0) {
+        // Parse JSON data column, skip malformed entries
+        try {
+          data = JSON.parse(row.data) as MessageData
+        } catch (error) {
+          const message = formatSqliteErrorMessage(
+            error,
+            `Malformed JSON in message row "${row.id}"`,
+            options
+          )
+          if (options.strict) {
+            throw new Error(message)
+          }
+          warnSqlite(options, message)
+          continue
         }
-        warnSqlite(options, message)
-        continue
       }
 
       // Determine role
+      const roleRaw = typeof row.role === "string" ? row.role : data.role
       const role: ChatRole =
-        data.role === "user" ? "user" :
-        data.role === "assistant" ? "assistant" :
+        roleRaw === "user" ? "user" :
+        roleRaw === "assistant" ? "assistant" :
         "unknown"
 
       // Use column timestamp first, fall back to data JSON
-      const createdAt = msToDate(row.created_at) ?? msToDate(data.time?.created)
+      const createdAt = parseTimestamp(row.created_at) ?? parseTimestamp(data.time?.created)
 
       // Parse tokens for assistant messages
       let tokens: TokenBreakdown | undefined
-      if (role === "assistant" && data.tokens) {
-        const parsed = parseMessageTokens(data.tokens)
-        if (parsed) {
-          tokens = parsed
-        }
+      if (role === "assistant") {
+        tokens = parseMessageTokens(data.tokens) ?? parseTokenColumns(row) ?? undefined
       }
 
+      const sessionId = row.session_id ?? data.sessionID ?? options.sessionId
       messages.push({
-        sessionId: row.session_id,
+        sessionId,
         messageId: row.id,
         role,
         createdAt,
-        parentId: data.parentID,
+        parentId: row.parent_id ?? data.parentID,
         tokens,
         parts: null,
         previewText: "[loading...]",
@@ -885,10 +1151,14 @@ export interface SqlitePartsLoadOptions extends SqliteLoadOptions {
  * Raw row structure from the SQLite part table.
  */
 interface PartRow {
-  id: string
-  message_id: string
-  session_id: string
-  data: string
+  id: string | null
+  message_id?: string | null
+  session_id?: string | null
+  data?: string | null
+  type?: string | null
+  text?: string | null
+  tool?: string | null
+  state?: string | null
 }
 
 /**
@@ -977,15 +1247,46 @@ export async function loadMessagePartsSqlite(
   const parts: ChatPart[] = []
 
   try {
-    if (!ensureSchema(db, buildSchemaRequirements(["part"]), options, "loadMessageParts")) {
+    const columns = ensureTableColumns(db, "part", [], options, "loadMessageParts")
+    if (!columns) {
       return []
     }
+
+    const idColumn = pickColumn(columns, ["id", "part_id"])
+    const messageIdColumn = pickColumn(columns, ["message_id", "messageId"])
+    if (!idColumn || !messageIdColumn) {
+      const available = Array.from(columns).join(", ")
+      const message = `loadMessageParts: SQLite schema is invalid (missing columns: part.id or part.message_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      return []
+    }
+
+    const sessionIdColumn = pickColumn(columns, ["session_id", "sessionId"])
+    const dataColumn = pickColumn(columns, ["data", "metadata", "payload", "json"])
+    const typeColumn = pickColumn(columns, ["type", "part_type"])
+    const textColumn = pickColumn(columns, ["text", "content", "body"])
+    const toolColumn = pickColumn(columns, ["tool", "tool_name"])
+    const stateColumn = pickColumn(columns, ["state", "tool_state"])
+
+    const selectColumns = [
+      buildColumnAlias(idColumn, "id"),
+      buildColumnAlias(messageIdColumn, "message_id"),
+      buildColumnAlias(sessionIdColumn, "session_id"),
+      buildColumnAlias(dataColumn, "data"),
+      buildColumnAlias(typeColumn, "type"),
+      buildColumnAlias(textColumn, "text"),
+      buildColumnAlias(toolColumn, "tool"),
+      buildColumnAlias(stateColumn, "state"),
+    ]
 
     // Query parts for the given message
     let rows: PartRow[] = []
     try {
       rows = db.query(
-        "SELECT id, message_id, session_id, data FROM part WHERE message_id = ?"
+        `SELECT ${selectColumns.join(", ")} FROM part WHERE ${messageIdColumn} = ?`
       ).all(options.messageId) as PartRow[]
     } catch (error) {
       const message = formatSqliteErrorMessage(error, "Failed to query part table", {
@@ -1003,22 +1304,44 @@ export async function loadMessagePartsSqlite(
     }
 
     for (const row of rows) {
+      if (!row.id) {
+        continue
+      }
       let data: PartData = {}
 
-      // Parse JSON data column, skip malformed entries
-      try {
-        data = JSON.parse(row.data) as PartData
-      } catch (error) {
-        const message = formatSqliteErrorMessage(
-          error,
-          `Malformed JSON in part row "${row.id}"`,
-          options
-        )
-        if (options.strict) {
-          throw new Error(message)
+      if (row.data && row.data.trim().length > 0) {
+        // Parse JSON data column, skip malformed entries
+        try {
+          data = JSON.parse(row.data) as PartData
+        } catch (error) {
+          const message = formatSqliteErrorMessage(
+            error,
+            `Malformed JSON in part row "${row.id}"`,
+            options
+          )
+          if (options.strict) {
+            throw new Error(message)
+          }
+          warnSqlite(options, message)
+          continue
         }
-        warnSqlite(options, message)
-        continue
+      }
+
+      if (typeof row.type === "string" && !data.type) {
+        data.type = row.type
+      }
+      if (typeof row.text === "string" && data.text === undefined) {
+        data.text = row.text
+      }
+      if (typeof row.tool === "string" && !data.tool) {
+        data.tool = row.tool
+      }
+      if (row.state && !data.state) {
+        try {
+          data.state = JSON.parse(row.state) as PartData["state"]
+        } catch {
+          data.state = { status: row.state }
+        }
       }
 
       // Determine part type
@@ -1033,7 +1356,7 @@ export async function loadMessagePartsSqlite(
 
       parts.push({
         partId: row.id,
-        messageId: row.message_id,
+        messageId: row.message_id ?? data.messageID ?? options.messageId,
         type,
         text: extracted.text,
         toolName: extracted.toolName,
@@ -1113,15 +1436,16 @@ export async function deleteSessionMetadataSqlite(
       return { removed, failed }
     }
 
-    let schemaMessage: string | null
+    let sessionColumns: Set<string> | null
+    let messageColumns: Set<string> | null
+    let partColumns: Set<string> | null
+
     try {
-      schemaMessage = getSchemaIssueMessage(
-        db,
-        buildSchemaRequirements(["session", "message", "part"]),
-        "deleteSessionMetadata"
-      )
+      sessionColumns = ensureTableColumns(db, "session", [], options, "deleteSessionMetadata", true)
+      messageColumns = ensureTableColumns(db, "message", [], options, "deleteSessionMetadata", true)
+      partColumns = ensureTableColumns(db, "part", [], options, "deleteSessionMetadata", true)
     } catch (error) {
-      const message = formatSqliteErrorMessage(error, "Failed to read SQLite schema", options)
+      const message = error instanceof Error ? error.message : String(error)
       if (options.strict) {
         throw new Error(message)
       }
@@ -1130,13 +1454,72 @@ export async function deleteSessionMetadataSqlite(
       }
       return { removed, failed }
     }
-    if (schemaMessage) {
+
+    if (!sessionColumns || !messageColumns || !partColumns) {
+      const message = "deleteSessionMetadata: SQLite schema is invalid (missing required tables)."
       if (options.strict) {
-        throw new Error(schemaMessage)
+        throw new Error(message)
       }
-      warnSqlite(options, schemaMessage)
+      warnSqlite(options, message)
       for (const sessionId of sessionIds) {
-        failed.push({ path: `sqlite:session:${sessionId}`, error: schemaMessage })
+        failed.push({ path: `sqlite:session:${sessionId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const sessionIdColumn = pickColumn(sessionColumns, ["id", "session_id"])
+    if (!sessionIdColumn) {
+      const available = Array.from(sessionColumns).join(", ")
+      const message = `deleteSessionMetadata: SQLite schema is invalid (missing columns: session.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const sessionId of sessionIds) {
+        failed.push({ path: `sqlite:session:${sessionId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const messageSessionIdColumn = pickColumn(messageColumns, ["session_id", "sessionId"])
+    const messageIdColumn = pickColumn(messageColumns, ["id", "message_id"])
+    if (!messageSessionIdColumn) {
+      const available = Array.from(messageColumns).join(", ")
+      const message = `deleteSessionMetadata: SQLite schema is invalid (missing columns: message.session_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const sessionId of sessionIds) {
+        failed.push({ path: `sqlite:session:${sessionId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const partSessionIdColumn = pickColumn(partColumns, ["session_id", "sessionId"])
+    const partMessageIdColumn = pickColumn(partColumns, ["message_id", "messageId"])
+    if (!partSessionIdColumn && !partMessageIdColumn) {
+      const available = Array.from(partColumns).join(", ")
+      const message = `deleteSessionMetadata: SQLite schema is invalid (missing columns: part.session_id or part.message_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const sessionId of sessionIds) {
+        failed.push({ path: `sqlite:session:${sessionId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    if (!partSessionIdColumn && !messageIdColumn) {
+      const available = Array.from(messageColumns).join(", ")
+      const message = `deleteSessionMetadata: SQLite schema is invalid (missing columns: message.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const sessionId of sessionIds) {
+        failed.push({ path: `sqlite:session:${sessionId}`, error: message })
       }
       return { removed, failed }
     }
@@ -1145,7 +1528,7 @@ export async function deleteSessionMetadataSqlite(
       // Dry run: just check which sessions exist and would be deleted
       const placeholders = sessionIds.map(() => "?").join(", ")
       const selectStmt = db.prepare(
-        `SELECT id FROM session WHERE id IN (${placeholders})`
+        `SELECT ${sessionIdColumn} as id FROM session WHERE ${sessionIdColumn} IN (${placeholders})`
       )
       const existingRows = selectStmt.all(...sessionIds) as { id: string }[]
       
@@ -1185,29 +1568,46 @@ export async function deleteSessionMetadataSqlite(
       // Build parameterized query with placeholders
       const placeholders = sessionIds.map(() => "?").join(", ")
       
+      let messageIds: string[] = []
+      if (!partSessionIdColumn && messageIdColumn) {
+        const selectMessageIds = db.prepare(
+          `SELECT ${messageIdColumn} as id FROM message WHERE ${messageSessionIdColumn} IN (${placeholders})`
+        )
+        const messageRows = selectMessageIds.all(...sessionIds) as { id: string }[]
+        messageIds = messageRows.map(r => r.id)
+      }
+
       // Delete parts first (child of message, also references session_id directly)
-      const deleteParts = db.prepare(
-        `DELETE FROM part WHERE session_id IN (${placeholders})`
-      )
-      deleteParts.run(...sessionIds)
+      if (partSessionIdColumn) {
+        const deleteParts = db.prepare(
+          `DELETE FROM part WHERE ${partSessionIdColumn} IN (${placeholders})`
+        )
+        deleteParts.run(...sessionIds)
+      } else if (partMessageIdColumn && messageIds.length > 0) {
+        const messagePlaceholders = messageIds.map(() => "?").join(", ")
+        const deleteParts = db.prepare(
+          `DELETE FROM part WHERE ${partMessageIdColumn} IN (${messagePlaceholders})`
+        )
+        deleteParts.run(...messageIds)
+      }
       
       // Delete messages next (child of session)
       const deleteMessages = db.prepare(
-        `DELETE FROM message WHERE session_id IN (${placeholders})`
+        `DELETE FROM message WHERE ${messageSessionIdColumn} IN (${placeholders})`
       )
       deleteMessages.run(...sessionIds)
       
       // Finally delete sessions
       // Get the list of actually deleted sessions for accurate reporting
       const selectSessions = db.prepare(
-        `SELECT id FROM session WHERE id IN (${placeholders})`
+        `SELECT ${sessionIdColumn} as id FROM session WHERE ${sessionIdColumn} IN (${placeholders})`
       )
       const existingRows = selectSessions.all(...sessionIds) as { id: string }[]
       
       const existingIds = new Set(existingRows.map(r => r.id))
       
       const deleteSessions = db.prepare(
-        `DELETE FROM session WHERE id IN (${placeholders})`
+        `DELETE FROM session WHERE ${sessionIdColumn} IN (${placeholders})`
       )
       deleteSessions.run(...sessionIds)
       
@@ -1316,15 +1716,18 @@ export async function deleteProjectMetadataSqlite(
       return { removed, failed }
     }
 
-    let schemaMessage: string | null
+    let projectColumns: Set<string> | null
+    let sessionColumns: Set<string> | null
+    let messageColumns: Set<string> | null
+    let partColumns: Set<string> | null
+
     try {
-      schemaMessage = getSchemaIssueMessage(
-        db,
-        buildSchemaRequirements(["project", "session", "message", "part"]),
-        "deleteProjectMetadata"
-      )
+      projectColumns = ensureTableColumns(db, "project", [], options, "deleteProjectMetadata", true)
+      sessionColumns = ensureTableColumns(db, "session", [], options, "deleteProjectMetadata", true)
+      messageColumns = ensureTableColumns(db, "message", [], options, "deleteProjectMetadata", true)
+      partColumns = ensureTableColumns(db, "part", [], options, "deleteProjectMetadata", true)
     } catch (error) {
-      const message = formatSqliteErrorMessage(error, "Failed to read SQLite schema", options)
+      const message = error instanceof Error ? error.message : String(error)
       if (options.strict) {
         throw new Error(message)
       }
@@ -1333,13 +1736,87 @@ export async function deleteProjectMetadataSqlite(
       }
       return { removed, failed }
     }
-    if (schemaMessage) {
+
+    if (!projectColumns || !sessionColumns || !messageColumns || !partColumns) {
+      const message = "deleteProjectMetadata: SQLite schema is invalid (missing required tables)."
       if (options.strict) {
-        throw new Error(schemaMessage)
+        throw new Error(message)
       }
-      warnSqlite(options, schemaMessage)
+      warnSqlite(options, message)
       for (const projectId of projectIds) {
-        failed.push({ path: `sqlite:project:${projectId}`, error: schemaMessage })
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const projectIdColumn = pickColumn(projectColumns, ["id", "project_id"])
+    if (!projectIdColumn) {
+      const available = Array.from(projectColumns).join(", ")
+      const message = `deleteProjectMetadata: SQLite schema is invalid (missing columns: project.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const projectId of projectIds) {
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const sessionIdColumn = pickColumn(sessionColumns, ["id", "session_id"])
+    const sessionProjectIdColumn = pickColumn(sessionColumns, ["project_id", "projectID", "projectId", "project"])
+    if (!sessionIdColumn || !sessionProjectIdColumn) {
+      const available = Array.from(sessionColumns).join(", ")
+      const message = `deleteProjectMetadata: SQLite schema is invalid (missing columns: session.id or session.project_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const projectId of projectIds) {
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const messageSessionIdColumn = pickColumn(messageColumns, ["session_id", "sessionId"])
+    const messageIdColumn = pickColumn(messageColumns, ["id", "message_id"])
+    if (!messageSessionIdColumn) {
+      const available = Array.from(messageColumns).join(", ")
+      const message = `deleteProjectMetadata: SQLite schema is invalid (missing columns: message.session_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const projectId of projectIds) {
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    const partSessionIdColumn = pickColumn(partColumns, ["session_id", "sessionId"])
+    const partMessageIdColumn = pickColumn(partColumns, ["message_id", "messageId"])
+    if (!partSessionIdColumn && !partMessageIdColumn) {
+      const available = Array.from(partColumns).join(", ")
+      const message = `deleteProjectMetadata: SQLite schema is invalid (missing columns: part.session_id or part.message_id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const projectId of projectIds) {
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
+      }
+      return { removed, failed }
+    }
+
+    if (!partSessionIdColumn && !messageIdColumn) {
+      const available = Array.from(messageColumns).join(", ")
+      const message = `deleteProjectMetadata: SQLite schema is invalid (missing columns: message.id). Available columns: ${available}.`
+      if (options.strict) {
+        throw new Error(message)
+      }
+      warnSqlite(options, message)
+      for (const projectId of projectIds) {
+        failed.push({ path: `sqlite:project:${projectId}`, error: message })
       }
       return { removed, failed }
     }
@@ -1349,7 +1826,7 @@ export async function deleteProjectMetadataSqlite(
     
     // First, get all session IDs for these projects
     const selectSessions = db.prepare(
-      `SELECT id FROM session WHERE project_id IN (${placeholders})`
+      `SELECT ${sessionIdColumn} as id FROM session WHERE ${sessionProjectIdColumn} IN (${placeholders})`
     )
     const sessionRows = selectSessions.all(...projectIds) as { id: string }[]
     const sessionIds = sessionRows.map(r => r.id)
@@ -1358,7 +1835,7 @@ export async function deleteProjectMetadataSqlite(
     if (options.dryRun) {
       // Dry run: just check which projects exist and would be deleted
       const selectProjects = db.prepare(
-        `SELECT id FROM project WHERE id IN (${placeholders})`
+        `SELECT ${projectIdColumn} as id FROM project WHERE ${projectIdColumn} IN (${placeholders})`
       )
       const existingRows = selectProjects.all(...projectIds) as { id: string }[]
       
@@ -1393,29 +1870,46 @@ export async function deleteProjectMetadataSqlite(
     }
     
     try {
+      let messageIds: string[] = []
+      if (!partSessionIdColumn && messageIdColumn && sessionIds.length > 0) {
+        const selectMessageIds = db.prepare(
+          `SELECT ${messageIdColumn} as id FROM message WHERE ${messageSessionIdColumn} IN (${sessionPlaceholders})`
+        )
+        const messageRows = selectMessageIds.all(...sessionIds) as { id: string }[]
+        messageIds = messageRows.map(r => r.id)
+      }
+
       // Delete parts first (child of message, also references session_id directly)
       if (sessionIds.length > 0) {
-        const deleteParts = db.prepare(
-          `DELETE FROM part WHERE session_id IN (${sessionPlaceholders})`
-        )
-        deleteParts.run(...sessionIds)
+        if (partSessionIdColumn) {
+          const deleteParts = db.prepare(
+            `DELETE FROM part WHERE ${partSessionIdColumn} IN (${sessionPlaceholders})`
+          )
+          deleteParts.run(...sessionIds)
+        } else if (partMessageIdColumn && messageIds.length > 0) {
+          const messagePlaceholders = messageIds.map(() => "?").join(", ")
+          const deleteParts = db.prepare(
+            `DELETE FROM part WHERE ${partMessageIdColumn} IN (${messagePlaceholders})`
+          )
+          deleteParts.run(...messageIds)
+        }
         
         // Delete messages next (child of session)
         const deleteMessages = db.prepare(
-          `DELETE FROM message WHERE session_id IN (${sessionPlaceholders})`
+          `DELETE FROM message WHERE ${messageSessionIdColumn} IN (${sessionPlaceholders})`
         )
         deleteMessages.run(...sessionIds)
       }
       
       // Delete sessions (child of project)
       const deleteSessions = db.prepare(
-        `DELETE FROM session WHERE project_id IN (${placeholders})`
+        `DELETE FROM session WHERE ${sessionProjectIdColumn} IN (${placeholders})`
       )
       deleteSessions.run(...projectIds)
       
       // Get the list of actually existing projects for accurate reporting
       const selectProjects = db.prepare(
-        `SELECT id FROM project WHERE id IN (${placeholders})`
+        `SELECT ${projectIdColumn} as id FROM project WHERE ${projectIdColumn} IN (${placeholders})`
       )
       const existingRows = selectProjects.all(...projectIds) as { id: string }[]
       
@@ -1423,7 +1917,7 @@ export async function deleteProjectMetadataSqlite(
       
       // Finally delete projects
       const deleteProjects = db.prepare(
-        `DELETE FROM project WHERE id IN (${placeholders})`
+        `DELETE FROM project WHERE ${projectIdColumn} IN (${placeholders})`
       )
       deleteProjects.run(...projectIds)
       
