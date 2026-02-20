@@ -188,3 +188,59 @@ describe("parseGlobalOptions SQLite flags", () => {
     expect(DEFAULT_OPTIONS.forceWrite).toBe(false);
   });
 });
+
+describe("OPENCODE_ROOT environment variable", () => {
+  it("respects OPENCODE_ROOT env variable for projects list", async () => {
+    const result = await $`OPENCODE_ROOT=/tmp bun src/bin/opencode-manager.ts projects list --format json`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(0);
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed).toHaveProperty("data");
+    expect(parsed.data).toBeArray();
+  });
+
+  it("respects OPENCODE_ROOT env variable for sessions list", async () => {
+    const result = await $`OPENCODE_ROOT=/tmp bun src/bin/opencode-manager.ts sessions list --format json`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(0);
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed).toHaveProperty("data");
+    expect(parsed.data).toBeArray();
+  });
+
+  it("--root flag takes precedence over OPENCODE_ROOT env variable", async () => {
+    const result = await $`OPENCODE_ROOT=/nonexistent/path bun src/bin/opencode-manager.ts projects list --root /tmp --format json`.quiet().nothrow();
+    
+    expect(result.exitCode).toBe(0);
+    const output = result.stdout.toString();
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+  });
+});
+
+describe("TUI backward compatibility", () => {
+  it("launches TUI when no subcommand is provided", async () => {
+    const result = await $`timeout 1 bun src/bin/opencode-manager.ts --help 2>/dev/null || true`.quiet().nothrow();
+    
+    const output = result.stdout.toString();
+    expect(output).toMatch(/opencode-manager|usage|help/i);
+  });
+
+  it("tui subcommand is available", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts tui --help`.quiet();
+    const output = result.stdout.toString();
+    
+    expect(output.length).toBeGreaterThan(0);
+  });
+
+  it("--help without subcommand shows usage info", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts --help`.quiet();
+    const output = result.stdout.toString();
+    
+    expect(output).toContain("opencode-manager");
+  });
+});

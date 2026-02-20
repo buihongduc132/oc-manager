@@ -1386,3 +1386,246 @@ describe("sessions move --experimental-sqlite", () => {
     expect(parsedAfter.data.length).toBe(parsedBefore.data.length);
   });
 });
+
+/**
+ * Integration tests for sessions rename with SQLite backend.
+ *
+ * These tests verify that the `--db` flag correctly uses the SQLite backend
+ * for renaming sessions.
+ */
+describe("sessions rename --experimental-sqlite", () => {
+  let tempDbDir: string;
+  let tempDbPath: string;
+
+  beforeEach(async () => {
+    tempDbDir = await fs.mkdtemp(join(tmpdir(), "opencode-sqlite-test-"));
+    tempDbPath = join(tempDbDir, "test.db");
+    await fs.copyFile(FIXTURE_SQLITE_PATH, tempDbPath);
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDbDir, { recursive: true, force: true });
+  });
+
+  it("renames a session in SQLite database with --db flag", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "New SQLite Title" --db ${tempDbPath} --format json`.quiet();
+    const output = result.stdout.toString();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
+    expect(parsed.data).toHaveProperty("title", "New SQLite Title");
+  });
+
+  it("updates title in database after rename", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "Updated Title" --db ${tempDbPath} --format json`.quiet();
+
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const parsed = JSON.parse(listResult.stdout.toString());
+
+    const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
+    expect(session.title).toBe("Updated Title");
+  });
+
+  it("supports session ID prefix matching with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add --title "Prefix Matched" --db ${tempDbPath} --format json`.quiet();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed.data.sessionId).toBe("session_add_tests");
+    expect(parsed.data.title).toBe("Prefix Matched");
+  });
+
+  it("returns exit code 3 for non-existent session with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session nonexistent_session --title "Test" --db ${tempDbPath} --format json`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(3);
+  });
+
+  it("returns exit code 2 for empty title with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "   " --db ${tempDbPath} --format json`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(2);
+  });
+
+  it("trims whitespace from title with SQLite", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "  Trimmed Title  " --db ${tempDbPath} --format json`.quiet();
+
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const parsed = JSON.parse(listResult.stdout.toString());
+
+    const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
+    expect(session.title).toBe("Trimmed Title");
+  });
+
+  it("works with table format output (SQLite)", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "Table Title" --db ${tempDbPath} --format table`.quiet();
+    const output = result.stdout.toString();
+
+    expect(output).toContain("Renamed session");
+    expect(output).toContain("session_add_tests");
+  });
+
+  it("works with ndjson format output (SQLite)", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "NDJSON Title" --db ${tempDbPath} --format ndjson`.quiet();
+    const output = result.stdout.toString().trim();
+
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
+    expect(parsed.data).toHaveProperty("title", "NDJSON Title");
+  });
+
+  it("returns error for non-existent database file", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "Test" --db /nonexistent/path/db.sqlite --format json`.quiet().nothrow();
+
+    expect(result.exitCode).not.toBe(0);
+
+    const stderr = result.stderr.toString();
+    expect(stderr).toContain("SQLite database");
+  });
+});
+
+/**
+ * Integration tests for sessions copy with SQLite backend.
+ *
+ * These tests verify that the `--db` flag correctly uses the SQLite backend
+ * for copying sessions.
+ */
+describe("sessions copy --experimental-sqlite", () => {
+  let tempDbDir: string;
+  let tempDbPath: string;
+
+  beforeEach(async () => {
+    tempDbDir = await fs.mkdtemp(join(tmpdir(), "opencode-sqlite-test-"));
+    tempDbPath = join(tempDbDir, "test.db");
+    await fs.copyFile(FIXTURE_SQLITE_PATH, tempDbPath);
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDbDir, { recursive: true, force: true });
+  });
+
+  it("copies a session to another project in SQLite database with --db flag", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format json`.quiet();
+    const output = result.stdout.toString();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("originalSessionId", "session_add_tests");
+    expect(parsed.data).toHaveProperty("newSessionId");
+    expect(parsed.data.newSessionId).not.toBe("session_add_tests");
+    expect(parsed.data).toHaveProperty("fromProject", "proj_present");
+    expect(parsed.data).toHaveProperty("toProject", "proj_missing");
+  });
+
+  it("keeps original session in source project after copy", async () => {
+    await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format json`.quiet();
+
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json --project proj_present`.quiet();
+    const parsed = JSON.parse(listResult.stdout.toString());
+
+    const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
+    expect(session).toBeDefined();
+  });
+
+  it("creates new session in target project after copy", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format json`.quiet();
+    const parsed = JSON.parse(result.stdout.toString());
+    const newSessionId = parsed.data.newSessionId;
+
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json --project proj_missing`.quiet();
+    const listParsed = JSON.parse(listResult.stdout.toString());
+
+    const session = listParsed.data.find((s: { sessionId: string }) => s.sessionId === newSessionId);
+    expect(session).toBeDefined();
+    expect(session.projectId).toBe("proj_missing");
+  });
+
+  it("supports session ID prefix matching with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add --to proj_missing --db ${tempDbPath} --format json`.quiet();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed.data.originalSessionId).toBe("session_add_tests");
+  });
+
+  it("supports project ID prefix matching with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_miss --db ${tempDbPath} --format json`.quiet();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed.data.toProject).toBe("proj_missing");
+  });
+
+  it("returns exit code 3 for non-existent session with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session nonexistent_session --to proj_missing --db ${tempDbPath} --format json`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(3);
+  });
+
+  it("returns exit code 3 for non-existent target project with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to nonexistent_project --db ${tempDbPath} --format json`.quiet().nothrow();
+
+    expect(result.exitCode).toBe(3);
+  });
+
+  it("allows copy to same project with SQLite", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_present --db ${tempDbPath} --format json`.quiet();
+
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(result.stdout.toString());
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data.originalSessionId).toBe("session_add_tests");
+    expect(parsed.data.newSessionId).not.toBe("session_add_tests");
+    expect(parsed.data.toProject).toBe("proj_present");
+  });
+
+  it("copies messages along with session", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format json`.quiet();
+    const parsed = JSON.parse(result.stdout.toString());
+    const newSessionId = parsed.data.newSessionId;
+
+    const chatResult = await $`bun src/bin/opencode-manager.ts chat list --session ${newSessionId} --db ${tempDbPath} --format json`.quiet();
+    const chatParsed = JSON.parse(chatResult.stdout.toString());
+
+    expect(chatParsed.data.length).toBeGreaterThan(0);
+  });
+
+  it("works with table format output (SQLite)", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format table`.quiet();
+    const output = result.stdout.toString();
+
+    expect(output).toContain("Copied session");
+    expect(output).toContain("session_add_tests");
+    expect(output).toContain("proj_missing");
+  });
+
+  it("works with ndjson format output (SQLite)", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db ${tempDbPath} --format ndjson`.quiet();
+    const output = result.stdout.toString().trim();
+
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveProperty("ok", true);
+    expect(parsed.data).toHaveProperty("originalSessionId", "session_add_tests");
+    expect(parsed.data).toHaveProperty("newSessionId");
+    expect(parsed.data).toHaveProperty("toProject", "proj_missing");
+  });
+
+  it("returns error for non-existent database file", async () => {
+    const result = await $`bun src/bin/opencode-manager.ts sessions copy --session session_add_tests --to proj_missing --db /nonexistent/path/db.sqlite --format json`.quiet().nothrow();
+
+    expect(result.exitCode).not.toBe(0);
+
+    const combined = result.stdout.toString() + result.stderr.toString();
+    expect(combined).toMatch(/error|failed|not found/i);
+  });
+});
