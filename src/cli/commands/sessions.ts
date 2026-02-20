@@ -6,6 +6,7 @@
  */
 
 import { Command, type OptionValues } from "commander"
+import { realpath } from "node:fs/promises"
 import { parseGlobalOptions, type GlobalOptions } from "../index"
 import {
   copySession,
@@ -248,7 +249,16 @@ async function inferProjectFromCwd(
   const candidates: Array<{ project: typeof projects[0]; depth: number }> = []
 
   for (const project of projects) {
-    const worktree = project.worktree
+    let worktree = project.worktree
+    try {
+      // Resolve symlinks to get the real path (cwd is already resolved by process.cwd())
+      worktree = await realpath(worktree)
+    } catch {
+      // If realpath fails (path doesn't exist), use original worktree path
+      worktree = project.worktree
+    }
+    // Normalize to remove trailing slashes for consistent comparison
+    worktree = worktree.replace(/\/+$/, "")
     // Check if cwd is inside or equal to worktree
     if (cwd === worktree || cwd.startsWith(worktree + "/")) {
       // Depth is the number of path segments in worktree
