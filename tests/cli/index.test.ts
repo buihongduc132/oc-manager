@@ -202,7 +202,7 @@ describe("OPENCODE_ROOT environment variable", () => {
   });
 
   it("respects OPENCODE_ROOT env variable for sessions list", async () => {
-    const result = await $`OPENCODE_ROOT=/tmp bun src/bin/opencode-manager.ts sessions list --format json`.quiet().nothrow();
+    const result = await $`OPENCODE_ROOT=/tmp bun src/bin/opencode-manager.ts sessions list --global --format json`.quiet().nothrow();
     
     expect(result.exitCode).toBe(0);
     const output = result.stdout.toString();

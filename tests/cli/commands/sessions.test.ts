@@ -13,7 +13,7 @@ import { FIXTURE_STORE_ROOT, FIXTURE_SQLITE_PATH } from "../../helpers";
 
 describe("sessions list --format json", () => {
   it("outputs valid JSON with success envelope", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -23,7 +23,7 @@ describe("sessions list --format json", () => {
   });
 
   it("includes correct session count", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -31,7 +31,7 @@ describe("sessions list --format json", () => {
   });
 
   it("includes session fields in JSON output", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -45,7 +45,7 @@ describe("sessions list --format json", () => {
   });
 
   it("serializes Date fields as ISO strings", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -61,7 +61,7 @@ describe("sessions list --format json", () => {
   });
 
   it("includes meta with limit info", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -81,7 +81,7 @@ describe("sessions list --format json", () => {
   });
 
   it("respects --search filter", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search parser`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search parser`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -90,7 +90,7 @@ describe("sessions list --format json", () => {
   });
 
   it("respects --limit option", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --limit 1`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --limit 1`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -100,7 +100,7 @@ describe("sessions list --format json", () => {
 
 describe("sessions list --format ndjson", () => {
   it("outputs valid NDJSON (one JSON object per line)", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -111,7 +111,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("includes correct session count (one per line)", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -119,7 +119,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("includes session fields in each NDJSON line", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -134,7 +134,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("serializes Date fields as ISO strings", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -151,7 +151,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("does not include envelope wrapper (raw records only)", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -175,7 +175,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("respects --search filter", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson --search parser`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson --search parser`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -185,7 +185,7 @@ describe("sessions list --format ndjson", () => {
   });
 
   it("respects --limit option", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format ndjson --limit 1`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format ndjson --limit 1`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -195,7 +195,7 @@ describe("sessions list --format ndjson", () => {
 
 describe("sessions list --format table", () => {
   it("outputs table with headers", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
     const output = result.stdout.toString();
 
     // Should have header row
@@ -206,7 +206,7 @@ describe("sessions list --format table", () => {
   });
 
   it("outputs table with header underline", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
     const output = result.stdout.toString();
     const lines = output.split("\n");
 
@@ -216,7 +216,7 @@ describe("sessions list --format table", () => {
   });
 
   it("includes session data rows", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
     const output = result.stdout.toString();
 
     // Should include session titles
@@ -225,7 +225,7 @@ describe("sessions list --format table", () => {
   });
 
   it("shows correct session count (header + underline + data rows)", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -243,7 +243,7 @@ describe("sessions list --format table", () => {
   });
 
   it("respects --search filter", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table --search parser`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table --search parser`.quiet();
     const output = result.stdout.toString();
 
     // Should only include parser session
@@ -252,7 +252,7 @@ describe("sessions list --format table", () => {
   });
 
   it("respects --limit option", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format table --limit 1`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format table --limit 1`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -261,7 +261,7 @@ describe("sessions list --format table", () => {
   });
 
   it("sorts by updated date descending by default", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -283,7 +283,7 @@ describe("sessions list search order matches TUI", () => {
   it("orders by fuzzy score descending when searching", async () => {
     // Search for "parser" - should match session_parser_fix with higher score
     // than session_add_tests (which doesn't contain "parser")
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search parser`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search parser`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -295,7 +295,7 @@ describe("sessions list search order matches TUI", () => {
   it("uses time as secondary sort when scores are equal", async () => {
     // Search for "proj" - matches both sessions via projectId "proj_present"
     // with similar scores, so time should be the tiebreaker
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search proj`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -310,7 +310,7 @@ describe("sessions list search order matches TUI", () => {
 
   it("uses createdAt for time tiebreaker when --sort created", async () => {
     // Search for "proj" with --sort created
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj --sort created`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search proj --sort created`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -325,8 +325,8 @@ describe("sessions list search order matches TUI", () => {
 
   it("maintains consistent ordering across multiple searches", async () => {
     // Run the same search multiple times and verify consistent ordering
-    const search1 = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
-    const search2 = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
+    const search1 = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
+    const search2 = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search present`.quiet();
 
     const parsed1 = JSON.parse(search1.stdout.toString());
     const parsed2 = JSON.parse(search2.stdout.toString());
@@ -340,7 +340,7 @@ describe("sessions list search order matches TUI", () => {
   it("sessionId is final tiebreaker for identical scores and times", async () => {
     // Search for "proj_present" - exact match in projectId for both sessions
     // Both have same projectId, so after score and time, sessionId is tiebreaker
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json --search proj_present`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json --search proj_present`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -393,7 +393,7 @@ describe("sessions delete --dry-run", () => {
     await $`bun src/bin/opencode-manager.ts sessions delete --session session_add_tests --root ${FIXTURE_STORE_ROOT} --format json --dry-run`.quiet();
 
     // Verify file still exists by running sessions list
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${FIXTURE_STORE_ROOT} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
     const sessionIds = parsed.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionIds).toContain("session_add_tests");
@@ -566,7 +566,7 @@ describe("sessions rename", () => {
     await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "Updated Title" --root ${tempRoot} --format json`.quiet();
 
     // Verify the file was updated by listing sessions
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --root ${tempRoot} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${tempRoot} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
     
     const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
@@ -608,7 +608,7 @@ describe("sessions rename", () => {
     await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "  Trimmed Title  " --root ${tempRoot} --format json`.quiet();
 
     // Verify the file was updated with trimmed title
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --root ${tempRoot} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --root ${tempRoot} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
     
     const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
@@ -851,7 +851,7 @@ describe("sessions copy", () => {
  */
 describe("sessions list --experimental-sqlite", () => {
   it("loads sessions from SQLite database with --db flag", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -861,7 +861,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("returns correct session IDs from SQLite database", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -875,7 +875,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("includes all expected session fields", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -890,7 +890,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("uses SQLite virtual filePath format (sqlite:session:{id})", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -914,7 +914,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("respects --search filter with SQLite backend", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json --search parser`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json --search parser`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -926,7 +926,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("respects --limit option with SQLite backend", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json --limit 2`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json --limit 2`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -934,7 +934,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("serializes Date fields as ISO strings", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -950,7 +950,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("works with table format output", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format table`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format table`.quiet();
     const output = result.stdout.toString();
 
     // Should have header row with expected columns
@@ -965,7 +965,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("works with ndjson format output", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format ndjson`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format ndjson`.quiet();
     const output = result.stdout.toString().trim();
     const lines = output.split("\n");
 
@@ -981,7 +981,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("returns error for non-existent database file", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db /nonexistent/path/db.sqlite --format json`.quiet().nothrow();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db /nonexistent/path/db.sqlite --format json`.quiet().nothrow();
 
     // Should fail with non-zero exit code
     expect(result.exitCode).not.toBe(0);
@@ -993,7 +993,7 @@ describe("sessions list --experimental-sqlite", () => {
   });
 
   it("sorts by updated date descending by default", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
+    const result = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${FIXTURE_SQLITE_PATH} --format json`.quiet();
     const output = result.stdout.toString();
 
     const parsed = JSON.parse(output);
@@ -1042,7 +1042,7 @@ describe("sessions delete --experimental-sqlite", () => {
 
   it("deletes session from SQLite database with --db flag and --yes", async () => {
     // Verify session exists before deletion
-    const listBefore = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listBefore = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedBefore = JSON.parse(listBefore.stdout.toString());
     const sessionsBefore = parsedBefore.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsBefore).toContain("session_add_tests");
@@ -1058,7 +1058,7 @@ describe("sessions delete --experimental-sqlite", () => {
     expect(parsed.data.deleted).toBeArray();
 
     // Verify session is gone after deletion
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).not.toContain("session_add_tests");
@@ -1078,7 +1078,7 @@ describe("sessions delete --experimental-sqlite", () => {
     expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
 
     // Verify session is deleted
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).not.toContain("session_add_tests");
@@ -1099,7 +1099,7 @@ describe("sessions delete --experimental-sqlite", () => {
     expect(parsed.data.paths[0]).toContain("sqlite:session:session_add_tests");
 
     // Verify session is NOT deleted (dry run)
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).toContain("session_add_tests");
@@ -1111,7 +1111,7 @@ describe("sessions delete --experimental-sqlite", () => {
     expect(result.exitCode).toBe(2);
 
     // Session should still exist
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).toContain("session_add_tests");
@@ -1178,7 +1178,7 @@ describe("sessions delete --experimental-sqlite", () => {
     await $`bun src/bin/opencode-manager.ts sessions delete --session session_parser_fix --db ${tempDbPath} --format json --yes`.quiet();
 
     // Verify session is gone
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).not.toContain("session_parser_fix");
@@ -1199,7 +1199,7 @@ describe("sessions delete --experimental-sqlite", () => {
     expect(parsed.data).toHaveProperty("sessionId", "session_add_tests");
 
     // Session should be deleted
-    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedAfter = JSON.parse(listAfter.stdout.toString());
     const sessionsAfter = parsedAfter.data.map((s: { sessionId: string }) => s.sessionId);
     expect(sessionsAfter).not.toContain("session_add_tests");
@@ -1363,7 +1363,7 @@ describe("sessions move --experimental-sqlite", () => {
     await $`bun src/bin/opencode-manager.ts sessions move --session session_add_tests --to proj_missing --db ${tempDbPath} --format json`.quiet();
 
     // Verify filePath still uses SQLite virtual format
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
 
     const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
@@ -1422,7 +1422,7 @@ describe("sessions rename --experimental-sqlite", () => {
   it("updates title in database after rename", async () => {
     await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "Updated Title" --db ${tempDbPath} --format json`.quiet();
 
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
 
     const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");
@@ -1454,7 +1454,7 @@ describe("sessions rename --experimental-sqlite", () => {
   it("trims whitespace from title with SQLite", async () => {
     await $`bun src/bin/opencode-manager.ts sessions rename --session session_add_tests --title "  Trimmed Title  " --db ${tempDbPath} --format json`.quiet();
 
-    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const listResult = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsed = JSON.parse(listResult.stdout.toString());
 
     const session = parsed.data.find((s: { sessionId: string }) => s.sessionId === "session_add_tests");

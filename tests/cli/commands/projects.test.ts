@@ -904,7 +904,7 @@ describe("projects delete --experimental-sqlite", () => {
 
   it("deletes project and all related sessions/messages/parts atomically", async () => {
     // Get initial counts by checking sessions
-    const sessionsBefore = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const sessionsBefore = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedSessionsBefore = JSON.parse(sessionsBefore.stdout.toString());
     // proj_present has 3 sessions: session_parser_fix, session_add_tests, session_refactor_api
     const sessionsInProject = parsedSessionsBefore.data.filter(
@@ -922,7 +922,7 @@ describe("projects delete --experimental-sqlite", () => {
     expect(projectsAfter).not.toContain("proj_present");
 
     // Verify sessions belonging to the project are also gone
-    const sessionsAfter = await $`bun src/bin/opencode-manager.ts sessions list --db ${tempDbPath} --format json`.quiet();
+    const sessionsAfter = await $`bun src/bin/opencode-manager.ts sessions list --global --db ${tempDbPath} --format json`.quiet();
     const parsedSessionsAfter = JSON.parse(sessionsAfter.stdout.toString());
     const sessionsInProjectAfter = parsedSessionsAfter.data.filter(
       (s: { projectId: string }) => s.projectId === "proj_present"
