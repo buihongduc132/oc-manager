@@ -44,6 +44,8 @@ function collectOptions(cmd: Command): OptionValues {
 export interface SessionsListOptions {
   /** Filter sessions by project ID */
   project?: string
+  /** List all sessions globally (conflicts with --project) */
+  global?: boolean
   /** Search query to filter sessions (fuzzy match) */
   search?: string
 }
@@ -104,12 +106,14 @@ export function registerSessionsCommands(parent: Command): void {
     .command("list")
     .description("List sessions")
     .option("-p, --project <projectId>", "Filter by project ID")
+    .option("-g, --global", "List all sessions globally (default: sessions for current directory)")
     .option("-s, --search <query>", "Search query to filter sessions")
     .action(function (this: Command) {
       const globalOpts = parseGlobalOptions(collectOptions(this))
       const cmdOpts = this.opts()
       const listOpts: SessionsListOptions = {
         project: cmdOpts.project as string | undefined,
+        global: cmdOpts.global as boolean | undefined,
         search: cmdOpts.search as string | undefined,
       }
       handleSessionsList(globalOpts, listOpts)
@@ -197,6 +201,9 @@ export function registerSessionsCommands(parent: Command): void {
     [
       "",
       "Examples:",
+      "  opencode-manager sessions list                      # List sessions for current directory",
+      "  opencode-manager sessions list --global             # List all sessions globally",
+      "  opencode-manager sessions list -p my-project        # List sessions for specific project",
       "  opencode-manager sessions list --experimental-sqlite",
       "  opencode-manager sessions list --db ~/.local/share/opencode/opencode.db",
     ].join("\n")
@@ -217,19 +224,103 @@ function buildSessionSearchText(session: SessionRecord): string {
 }
 
 /**
+ * Result of inferring project from cwd.
+ */
+interface InferredProject {
+  projectId: string
+  worktree: string
+}
+
+/**
+ * Infer the project ID from the current working directory.
+ * Finds projects whose worktree is a parent of (or equal to) cwd,
+ * then selects the deepest match (longest path).
+ *
+ * @throws UsageError if no project matches cwd or if multiple projects match at the same depth
+ */
+async function inferProjectFromCwd(
+  provider: ReturnType<typeof createProviderFromGlobalOptions>
+): Promise<InferredProject> {
+  const projects = await provider.loadProjectRecords()
+  const cwd = process.cwd()
+
+  // Find all projects whose worktree is a parent of or equal to cwd
+  const candidates: Array<{ project: typeof projects[0]; depth: number }> = []
+
+  for (const project of projects) {
+    const worktree = project.worktree
+    // Check if cwd is inside or equal to worktree
+    if (cwd === worktree || cwd.startsWith(worktree + "/")) {
+      // Depth is the number of path segments in worktree
+      const depth = worktree.split("/").length
+      candidates.push({ project, depth })
+    }
+  }
+
+  if (candidates.length === 0) {
+    throw new UsageError(
+      `No project found for current directory: ${cwd}\n` +
+      `Use --global to list all sessions, or --project <id> to specify a project.`
+    )
+  }
+
+  // Find the maximum depth
+  const maxDepth = Math.max(...candidates.map((c) => c.depth))
+
+  // Filter to only candidates at max depth
+  const deepestCandidates = candidates.filter((c) => c.depth === maxDepth)
+
+  if (deepestCandidates.length > 1) {
+    const projectIds = deepestCandidates.map((c) => c.project.projectId).join(", ")
+    throw new UsageError(
+      `Ambiguous project match for current directory: ${cwd}\n` +
+      `Multiple projects match at the same depth: ${projectIds}\n` +
+      `Use --project <id> to specify which project.`
+    )
+  }
+
+  const winner = deepestCandidates[0].project
+  return {
+    projectId: winner.projectId,
+    worktree: winner.worktree,
+  }
+}
+
+/**
  * Handle the sessions list command.
  */
 async function handleSessionsList(
   globalOpts: GlobalOptions,
   listOpts: SessionsListOptions
 ): Promise<void> {
+  // Validate that --global and --project are not used together
+  if (listOpts.global && listOpts.project) {
+    throw new UsageError(
+      "Cannot use --global and --project together. Use one or the other."
+    )
+  }
+
   // Create data provider based on global options (JSONL or SQLite backend)
   const provider = createProviderFromGlobalOptions(globalOpts)
+
+  // Determine the project filter
+  let projectIdFilter: string | undefined
+  if (listOpts.global) {
+    // --global: list all sessions, no project filter
+    projectIdFilter = undefined
+  } else if (listOpts.project) {
+    // --project specified: use it
+    projectIdFilter = listOpts.project
+  } else {
+    // Default: infer project from current working directory
+    const inferred = await inferProjectFromCwd(provider)
+    projectIdFilter = inferred.projectId
+  }
 
   // Load session records from the data layer
   // If a project filter is provided, pass it to the loader
   let sessions = await provider.loadSessionRecords({
-    projectId: listOpts.project,
+    projectId: projectIdFilter,
   })
 
   // Apply fuzzy search if search query is provided

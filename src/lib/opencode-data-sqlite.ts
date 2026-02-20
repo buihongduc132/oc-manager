@@ -732,8 +732,8 @@ export async function loadSessionRecordsSqlite(
 
     const projectIdColumn = pickColumn(columns, ["project_id", "projectID", "projectId", "project"])
     const parentIdColumn = pickColumn(columns, ["parent_id", "parentID", "parentId", "parent"])
-    const createdColumn = pickColumn(columns, ["created_at", "created", "created_ms", "createdAt"])
-    const updatedColumn = pickColumn(columns, ["updated_at", "updated", "updated_ms", "updatedAt"])
+    const createdColumn = pickColumn(columns, ["created_at", "created", "created_ms", "createdAt", "time_created"])
+    const updatedColumn = pickColumn(columns, ["updated_at", "updated", "updated_ms", "updatedAt", "time_updated"])
     const dataColumn = pickColumn(columns, ["data", "metadata", "payload", "json"])
     const directoryColumn = pickColumn(columns, ["directory", "cwd", "path", "worktree", "root"])
     const titleColumn = pickColumn(columns, ["title", "name"])

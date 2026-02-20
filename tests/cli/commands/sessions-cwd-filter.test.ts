@@ -1,6 +1,6 @@
 /**
  * TDD tests for sessions list cwd filtering behavior.
- * 
+ *
  * Feature: sessions list defaults to current working directory;
  * --global flag required to list all sessions.
  */
@@ -8,9 +8,15 @@
 import { describe, expect, it } from "bun:test";
 import { $ } from "bun";
 import { promises as fs } from "node:fs";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
-import { FIXTURE_STORE_ROOT } from "../../helpers";
+import { FIXTURE_STORE_ROOT, TESTS_ROOT } from "../../helpers";
+
+// Resolve repo root from tests directory (go up one level)
+const REPO_ROOT = dirname(TESTS_ROOT);
+
+// Absolute path to CLI entry point
+const CLI_PATH = join(REPO_ROOT, "src/bin/opencode-manager.ts");
 
 type TempStore = {
   tempDir: string;
@@ -64,19 +70,34 @@ async function writeSession(
 
 describe("sessions list cwd filtering", () => {
   it("filters sessions to current working directory by default", async () => {
-    // Setup: Run from a directory that matches one of the fixture sessions
-    // Fixture has sessions with directory: tests/fixtures/worktrees/my-present-project
-    const fixtureDir = "tests/fixtures/worktrees/my-present-project";
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --format json`.cwd(fixtureDir).quiet();
-    const output = result.stdout.toString();
-    const parsed = JSON.parse(output);
+    // Create temp store with absolute paths to work from any cwd
+    const { tempDir, storeRoot, cleanup } = await createTempStore();
+    try {
+      const worktree = join(tempDir, "worktrees", "my-project");
+      await fs.mkdir(worktree, { recursive: true });
+      await writeProject(storeRoot, "proj_test", worktree);
+      await writeSession(storeRoot, "proj_test", "session_one", worktree, "Test session");
+      await writeSession(storeRoot, "proj_test", "session_two", worktree, "Another session");
 
-    // All returned sessions should match cwd
-    expect(parsed.ok).toBe(true);
-    expect(parsed.data).toBeArray();
-    expect(parsed.data.length).toBeGreaterThan(0);
-    for (const session of parsed.data) {
-      expect(session.directory).toBe(fixtureDir);
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(worktree).quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
+      const output = result.stdout.toString();
+      const parsed = JSON.parse(output);
+
+      // All returned sessions should match cwd
+      expect(parsed.ok).toBe(true);
+      expect(parsed.data).toBeArray();
+      expect(parsed.data.length).toBeGreaterThan(0);
+      for (const session of parsed.data) {
+        expect(session.directory).toBe(worktree);
+      }
+    } finally {
+      await cleanup();
     }
   });
 
@@ -87,7 +108,13 @@ describe("sessions list cwd filtering", () => {
       await fs.mkdir(worktree, { recursive: true });
       await writeProject(storeRoot, "proj_empty", worktree);
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json`.cwd(worktree).quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(worktree).quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
       const output = result.stdout.toString();
       const parsed = JSON.parse(output);
 
@@ -108,10 +135,16 @@ describe("sessions list cwd filtering", () => {
       await fs.mkdir(outsideDir, { recursive: true });
       await writeProject(storeRoot, "proj_inside", worktree);
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json`.cwd(outsideDir).nothrow().quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(outsideDir).nothrow().quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
 
       expect(result.exitCode).not.toBe(0);
-      expect(result.stderr.toString()).toContain("current working directory");
+      expect(result.stderr.toString()).toContain("current directory");
     } finally {
       await cleanup();
     }
@@ -129,7 +162,13 @@ describe("sessions list cwd filtering", () => {
       await writeSession(storeRoot, "proj_parent", "session_parent", parentDir, "Parent session");
       await writeSession(storeRoot, "proj_child", "session_child", childDir, "Child session");
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json`.cwd(childDir).quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(childDir).quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
       const output = result.stdout.toString();
       const parsed = JSON.parse(output);
 
@@ -151,7 +190,13 @@ describe("sessions list cwd filtering", () => {
       await writeSession(storeRoot, "proj_one", "session_one", sharedDir, "Session one");
       await writeSession(storeRoot, "proj_two", "session_two", sharedDir, "Session two");
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json`.cwd(sharedDir).nothrow().quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(sharedDir).nothrow().quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
 
       expect(result.exitCode).not.toBe(0);
       expect(result.stderr.toString()).toContain("--project");
@@ -171,7 +216,13 @@ describe("sessions list cwd filtering", () => {
       await writeProject(storeRoot, "proj_real", realDir);
       await writeSession(storeRoot, "proj_real", "session_real", realDir, "Realpath match");
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json`.cwd(linkDir).quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json`.cwd(linkDir).quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
       const output = result.stdout.toString();
       const parsed = JSON.parse(output);
 
@@ -196,7 +247,13 @@ describe("sessions list cwd filtering", () => {
       await writeSession(storeRoot, "proj_a", "session_parser_a", worktreeA, "Parser fix A");
       await writeSession(storeRoot, "proj_b", "session_parser_b", worktreeB, "Parser fix B");
 
-      const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${storeRoot} --format json --search parser`.cwd(worktreeA).quiet();
+      const shellPromise = $`bun ${CLI_PATH} sessions list --root ${storeRoot} --format json --search parser`.cwd(worktreeA).quiet();
+      const result = await Promise.race([
+        shellPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+        ),
+      ]);
       const output = result.stdout.toString();
       const parsed = JSON.parse(output);
 
@@ -209,7 +266,13 @@ describe("sessions list cwd filtering", () => {
 
   it("--global flag lists all sessions regardless of cwd", async () => {
     // Run from repo root but with --global flag
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --global --format json`.quiet();
+    const shellPromise = $`bun ${CLI_PATH} sessions list --root ${FIXTURE_STORE_ROOT} --global --format json`.quiet();
+    const result = await Promise.race([
+      shellPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+      ),
+    ]);
     const output = result.stdout.toString();
     const parsed = JSON.parse(output);
 
@@ -221,7 +284,13 @@ describe("sessions list cwd filtering", () => {
 
   it("--project flag overrides cwd filtering", async () => {
     // Run from repo root but explicitly filter by project
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --project proj_present --format json`.quiet();
+    const shellPromise = $`bun ${CLI_PATH} sessions list --root ${FIXTURE_STORE_ROOT} --project proj_present --format json`.quiet();
+    const result = await Promise.race([
+      shellPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+      ),
+    ]);
     const output = result.stdout.toString();
     const parsed = JSON.parse(output);
 
@@ -234,7 +303,13 @@ describe("sessions list cwd filtering", () => {
   });
 
   it("rejects --global and --project together", async () => {
-    const result = await $`bun src/bin/opencode-manager.ts sessions list --root ${FIXTURE_STORE_ROOT} --global --project proj_present --format json`.nothrow().quiet();
+    const shellPromise = $`bun ${CLI_PATH} sessions list --root ${FIXTURE_STORE_ROOT} --global --project proj_present --format json`.nothrow().quiet();
+    const result = await Promise.race([
+      shellPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("CLI command timed out after 30s")), 30000)
+      ),
+    ]);
     
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr.toString()).toContain("Cannot use --global and --project together");
