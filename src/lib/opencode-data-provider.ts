@@ -20,7 +20,9 @@
  * const sessions = await provider.loadSessionRecords({ projectId: 'abc123' })
  * ```
  */
-import { resolve } from "node:path"
+import { resolve, join } from "node:path"
+import { existsSync, readdirSync, statSync, readFileSync } from "node:fs"
+import { Database } from "bun:sqlite"
 import type {
   ProjectRecord,
   SessionRecord,
@@ -653,6 +655,82 @@ export function createProvider(options: DataProviderOptions = {}): DataProvider 
   return createJsonlProvider(root)
 }
 
+function getLatestJsonlSessionTime(root: string): number | null {
+  const sessionRoot = join(root, "storage", "session")
+  if (!existsSync(sessionRoot)) {
+    return null
+  }
+
+  let latest = 0
+  const reservedDirs = new Set(["message", "part"])
+  try {
+    const projectDirs = readdirSync(sessionRoot, { withFileTypes: true })
+    for (const dirent of projectDirs) {
+      if (!dirent.isDirectory()) {
+        continue
+      }
+      if (reservedDirs.has(dirent.name)) {
+        continue
+      }
+      const projectDir = join(sessionRoot, dirent.name)
+      const files = readdirSync(projectDir)
+      for (const file of files) {
+        if (!file.endsWith(".json")) {
+          continue
+        }
+        const filePath = join(projectDir, file)
+        const stat = statSync(filePath)
+        if (stat.mtimeMs > latest) {
+          latest = stat.mtimeMs
+        }
+        try {
+          const payload = JSON.parse(readFileSync(filePath, "utf8"))
+          const updated = payload?.time?.updated ?? payload?.time?.created
+          if (typeof updated === "number" && updated > latest) {
+            latest = updated
+          }
+        } catch {
+          continue
+        }
+      }
+    }
+  } catch {
+    return null
+  }
+
+  return latest > 0 ? latest : null
+}
+
+function getLatestSqliteSessionTime(dbPath: string): number | null {
+  if (!existsSync(dbPath)) {
+    return null
+  }
+
+  let db: Database | null = null
+  try {
+    db = new Database(dbPath, { readonly: true })
+    const columns = db.query("PRAGMA table_info(session)").all() as { name?: string }[]
+    const columnNames = columns.map((col) => col.name).filter(Boolean) as string[]
+    const candidate = [
+      "time_updated",
+      "updated_at",
+      "updatedAt",
+      "updated",
+      "timeUpdated",
+    ].find((name) => columnNames.includes(name))
+    if (!candidate) {
+      return null
+    }
+    const row = db.query(`SELECT MAX(${candidate}) as value FROM session`).get() as { value?: number } | null
+    const value = row?.value
+    return typeof value === "number" ? value : null
+  } catch {
+    return null
+  } finally {
+    db?.close()
+  }
+}
+
 /**
  * Create a data provider from CLI global options.
  *
@@ -678,8 +756,21 @@ export function createProviderFromGlobalOptions(globalOptions: {
     })
   }
 
+  const root = globalOptions.root ?? DEFAULT_ROOT
+  if (root === DEFAULT_ROOT) {
+    const dbPath = DEFAULT_SQLITE_PATH
+    const sqliteTime = getLatestSqliteSessionTime(dbPath)
+    const jsonlTime = getLatestJsonlSessionTime(root)
+    if (sqliteTime !== null && (jsonlTime === null || sqliteTime >= jsonlTime)) {
+      return createProvider({
+        backend: "sqlite",
+        dbPath,
+      })
+    }
+  }
+
   return createProvider({
     backend: "jsonl",
-    root: globalOptions.root,
+    root,
   })
 }
