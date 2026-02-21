@@ -1,4 +1,4 @@
-import { exec } from "node:child_process"
+import { spawn } from "node:child_process"
 
 /**
  * Copy text to the system clipboard.
@@ -9,15 +9,40 @@ import { exec } from "node:child_process"
  */
 export function copyToClipboard(text: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const cmd =
-      process.platform === "darwin" ? "pbcopy" : "xclip -selection clipboard"
-    const proc = exec(cmd, (error) => {
-      if (error) {
-        reject(error)
-      } else {
+    const isDarwin = process.platform === "darwin"
+    const isLinux = process.platform === "linux"
+    const displayValue = process.env.DISPLAY?.trim()
+    const waylandValue = process.env.WAYLAND_DISPLAY?.trim()
+    const hasDisplay = Boolean(displayValue || waylandValue)
+    if (isLinux && !hasDisplay) {
+      reject(new Error("Clipboard not available (no display)"))
+      return
+    }
+
+    const command = isDarwin ? "pbcopy" : "xclip"
+    const args = isDarwin ? [] : ["-selection", "clipboard"]
+    const proc = spawn(command, args, { stdio: ["pipe", "ignore", "ignore"] })
+    proc.unref()
+    const timeout = setTimeout(() => {
+      proc.kill("SIGKILL")
+      reject(new Error(`${command} timed out`))
+    }, 2000)
+
+    proc.on("error", (error) => {
+      clearTimeout(timeout)
+      reject(error)
+    })
+
+    proc.on("close", (code) => {
+      clearTimeout(timeout)
+      if (code === 0) {
         resolve()
+      } else {
+        const suffix = code === null ? "unknown" : String(code)
+        reject(new Error(`${command} exited with code ${suffix}`))
       }
     })
+
     proc.stdin?.write(text)
     proc.stdin?.end()
   })

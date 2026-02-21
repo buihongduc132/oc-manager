@@ -590,10 +590,14 @@ async function handleSessionsCopy(
 ): Promise<void> {
   const outputOpts = getOutputOptions(globalOpts)
 
+  // Create data provider based on global options (JSONL or SQLite backend)
+  const provider = createProviderFromGlobalOptions(globalOpts)
+
   // Resolve session ID to a session record
   const { session } = await resolveSessionId(copyOpts.session, {
     root: globalOpts.root,
     allowPrefix: true,
+    provider,
   })
 
   // Validate target project exists
@@ -601,10 +605,11 @@ async function handleSessionsCopy(
   const { project: targetProject } = await resolveProjectId(copyOpts.to, {
     root: globalOpts.root,
     allowPrefix: true,
+    provider,
   })
 
   // Copy the session
-  const newRecord = await copySession(session, targetProject.projectId, globalOpts.root)
+  const newRecord = await provider.copySession(session, targetProject.projectId)
 
   // Output success
   printSuccessOutput(

@@ -108,7 +108,8 @@ export function exitWithError(
   exitCode: ExitCodeValue = ExitCode.ERROR,
   format: OutputFormat = "table"
 ): never {
-  console.error(formatErrorOutput(error, format))
+  const output = formatErrorOutput(error, format)
+  process.stderr.write(output.endsWith("\n") ? output : `${output}\n`)
   process.exit(exitCode)
 }
 
@@ -122,7 +123,8 @@ export function exitWithCLIError(
   error: CLIError,
   format: OutputFormat = "table"
 ): never {
-  console.error(formatErrorOutput(error, format))
+  const output = formatErrorOutput(error, format)
+  process.stderr.write(output.endsWith("\n") ? output : `${output}\n`)
   process.exit(error.exitCode)
 }
 

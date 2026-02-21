@@ -278,19 +278,26 @@ async function handleChatShow(
 
   // Copy to clipboard if requested
   if (showOpts.clipboard) {
-    const content = hydratedMessage.parts
-      ?.map((p: { text: string }) => p.text)
-      .join("\n\n") ?? hydratedMessage.previewText
-    try {
-      await copyToClipboard(content)
-      if (globalOpts.format === "table") {
-        console.log("(copied to clipboard)")
-      }
-    } catch {
-      // Clipboard copy failed (e.g., xclip/pbcopy not available)
-      // Warn but continue - the user still gets the message output
+    const canAttemptClipboard = !process.env.CI && !process.env.BUN_TEST
+    if (!canAttemptClipboard) {
       if (globalOpts.format === "table") {
         console.error("Warning: Could not copy to clipboard")
+      }
+    } else {
+      const content = hydratedMessage.parts
+        ?.map((p: { text: string }) => p.text)
+        .join("\n\n") ?? hydratedMessage.previewText
+      try {
+        await copyToClipboard(content)
+        if (globalOpts.format === "table") {
+          console.log("(copied to clipboard)")
+        }
+      } catch {
+        // Clipboard copy failed (e.g., xclip/pbcopy not available)
+        // Warn but continue - the user still gets the message output
+        if (globalOpts.format === "table") {
+          console.error("Warning: Could not copy to clipboard")
+        }
       }
     }
   }
