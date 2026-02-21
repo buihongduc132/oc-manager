@@ -46,6 +46,8 @@ __pycache__/
 
 # Ralph - AI agent loop files
 .ralph*
+.opencode/
 
-# Ralph - AI agent loop files
+# Ralph - AI agent loop files (plugin exception)
+!.opencode/plugin/
 .opencode/plugin/ralph-write-guardrail.ts
