@@ -9,7 +9,8 @@
     "bun": ">=1.3.0"
   },
   "bin": {
-    "opencode-manager": "src/bin/opencode-manager.ts"
+    "opencode-manager": "src/bin/opencode-manager.ts",
+    "oqo-sess": "src/bin/opencode-manager.ts"
   },
   "files": [
     "src",
